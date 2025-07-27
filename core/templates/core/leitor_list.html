@@ -1,0 +1,60 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Leitores - Biblioteca Comunitária{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col">
+        <h2><i class="fas fa-users"></i> Leitores</h2>
+    </div>
+    <div class="col text-right">
+        <a href="{% url 'leitor_create' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Adicionar Leitor
+        </a>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="thead-dark">
+            <tr>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Telefone</th>
+                <th>Email</th>
+                <th>Ativo</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for leitor in leitores %}
+            <tr>
+                <td>{{ leitor.usuario.get_full_name }}</td>
+                <td>{{ leitor.cpf }}</td>
+                <td>{{ leitor.telefone }}</td>
+                <td>{{ leitor.usuario.email }}</td>
+                <td>
+                    {% if leitor.ativo %}
+                        <span class="badge badge-success">Sim</span>
+                    {% else %}
+                        <span class="badge badge-danger">Não</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'leitor_update' leitor.id %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <a href="{% url 'leitor_delete' leitor.id %}" class="btn btn-sm btn-danger">
+                        <i class="fas fa-trash"></i> Excluir
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center">Nenhum leitor cadastrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

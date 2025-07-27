@@ -1,0 +1,33 @@
+{% extends 'core/base.html' %}
+{% load bootstrap4 %}
+
+{% block title %}{% if form.instance.pk %}Editar{% else %}Adicionar{% endif %} Livro{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4>
+                    <i class="fas fa-book"></i> 
+                    {% if form.instance.pk %}Editar{% else %}Adicionar{% endif %} Livro
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Salvar
+                        </button>
+                        <a href="{% url 'livro_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

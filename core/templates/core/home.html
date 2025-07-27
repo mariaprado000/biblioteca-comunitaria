@@ -1,0 +1,60 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Início - Biblioteca Comunitária{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4">Bem-vindo à Biblioteca Comunitária!</h1>
+    <p class="lead">Sistema de gerenciamento de biblioteca com controle de livros, leitores e empréstimos.</p>
+    <hr class="my-4">
+    {% if user.is_authenticated %}
+        <p>Olá, {{ user.first_name }}! Escolha uma opção no menu acima para começar.</p>
+    {% else %}
+        <p>Faça login para acessar o sistema.</p>
+        <a class="btn btn-primary btn-lg" href="{% url 'login' %}" role="button">
+            <i class="fas fa-sign-in-alt"></i> Fazer Login
+        </a>
+    {% endif %}
+</div>
+
+{% if user.is_authenticated %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-center mb-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-book fa-3x text-primary"></i></h5>
+                <p class="card-text">Gerenciar Livros</p>
+                <a href="{% url 'livro_list' %}" class="btn btn-primary">Acessar</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center mb-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-users fa-3x text-success"></i></h5>
+                <p class="card-text">Gerenciar Leitores</p>
+                <a href="{% url 'leitor_list' %}" class="btn btn-success">Acessar</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center mb-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-user-tie fa-3x text-info"></i></h5>
+                <p class="card-text">Gerenciar Funcionários</p>
+                <a href="{% url 'funcionario_list' %}" class="btn btn-info">Acessar</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center mb-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-hand-holding fa-3x text-warning"></i></h5>
+                <p class="card-text">Gerenciar Empréstimos</p>
+                <a href="{% url 'emprestimo_list' %}" class="btn btn-warning">Acessar</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
