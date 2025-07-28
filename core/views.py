@@ -3,13 +3,56 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.contrib.auth.models import User, Group
+from django.db.models import Count, Q
+from django.utils import timezone
+from datetime import timedelta
+from decimal import Decimal
 from .models import Livro, Leitor, Funcionario, Emprestimo, Categoria
 from .forms import LivroForm, LeitorForm, FuncionarioForm, EmprestimoForm, CategoriaForm, RegistroForm
 
-# View Home
+# Funções auxiliares para verificar grupos
+def is_funcionario(user):
+    return user.groups.filter(name='Funcionários').exists() or user.is_superuser
+
+def is_leitor(user):
+    return user.groups.filter(name='Leitores').exists()
+
+# View Home com Dashboard
 @login_required
 def home(request):
-    return render(request, 'core/home.html')
+    context = {}
+    
+    if is_funcionario(request.user):
+        # Dashboard para funcionários
+        context['total_livros'] = Livro.objects.count()
+        context['livros_disponiveis'] = Livro.objects.filter(disponivel=True).count()
+        context['total_leitores'] = Leitor.objects.filter(ativo=True).count()
+        context['emprestimos_ativos'] = Emprestimo.objects.filter(data_devolucao__isnull=True).count()
+        context['emprestimos_atrasados'] = Emprestimo.objects.filter(
+            data_devolucao__isnull=True,
+            data_devolucao_prevista__lt=timezone.now().date()
+        ).count()
+        
+        # Livros mais emprestados
+        context['livros_populares'] = Livro.objects.annotate(
+            num_emprestimos=Count('emprestimo')
+        ).order_by('-num_emprestimos')[:5]
+        
+    else:
+        # Dashboard para leitores
+        try:
+            leitor = request.user.leitor
+            context['meus_emprestimos'] = Emprestimo.objects.filter(
+                leitor=leitor,
+                data_devolucao__isnull=True
+            )
+            context['historico_emprestimos'] = Emprestimo.objects.filter(
+                leitor=leitor
+            ).order_by('-data_emprestimo')[:10]
+        except:
+            pass
+    
+    return render(request, 'core/home.html', context)
 
 # View Registro
 def registro_view(request):
@@ -17,26 +60,35 @@ def registro_view(request):
         form = RegistroForm(request.POST)
         if form.is_valid():
             user = form.save()
-            # Adicionar usuário ao grupo padrão se existir
+            # Adicionar usuário ao grupo padrão
             try:
                 grupo_leitores = Group.objects.get(name='Leitores')
                 user.groups.add(grupo_leitores)
             except Group.DoesNotExist:
                 pass
             login(request, user)
-            messages.success(request, 'Registro realizado com sucesso!')
-            return redirect('home')
+            messages.success(request, 'Registro realizado com sucesso! Complete seu cadastro como leitor.')
+            return redirect('leitor_create_self')
     else:
         form = RegistroForm()
     return render(request, 'core/registro.html', {'form': form})
 
-# CRUD LIVROS
+# CRUD LIVROS (apenas funcionários)
 @login_required
 def livro_list(request):
-    livros = Livro.objects.all().order_by('titulo')
-    return render(request, 'core/livro_list.html', {'livros': livros})
+    query = request.GET.get('q')
+    if query:
+        livros = Livro.objects.filter(
+            Q(titulo__icontains=query) | 
+            Q(autor__icontains=query) |
+            Q(isbn__icontains=query)
+        ).order_by('titulo')
+    else:
+        livros = Livro.objects.all().order_by('titulo')
+    return render(request, 'core/livro_list.html', {'livros': livros, 'query': query})
 
 @login_required
+@user_passes_test(is_funcionario)
 def livro_create(request):
     if request.method == 'POST':
         form = LivroForm(request.POST)
@@ -49,6 +101,7 @@ def livro_create(request):
     return render(request, 'core/livro_form.html', {'form': form})
 
 @login_required
+@user_passes_test(is_funcionario)
 def livro_update(request, pk):
     livro = get_object_or_404(Livro, pk=pk)
     if request.method == 'POST':
@@ -62,6 +115,7 @@ def livro_update(request, pk):
     return render(request, 'core/livro_form.html', {'form': form})
 
 @login_required
+@user_passes_test(is_funcionario)
 def livro_delete(request, pk):
     livro = get_object_or_404(Livro, pk=pk)
     if request.method == 'POST':
@@ -72,24 +126,68 @@ def livro_delete(request, pk):
 
 # CRUD LEITORES
 @login_required
+@user_passes_test(is_funcionario)
 def leitor_list(request):
-    leitores = Leitor.objects.all().order_by('usuario__first_name')
-    return render(request, 'core/leitor_list.html', {'leitores': leitores})
+    query = request.GET.get('q')
+    if query:
+        leitores = Leitor.objects.filter(
+            Q(usuario__first_name__icontains=query) |
+            Q(usuario__last_name__icontains=query) |
+            Q(cpf__icontains=query)
+        ).order_by('usuario__first_name')
+    else:
+        leitores = Leitor.objects.all().order_by('usuario__first_name')
+    return render(request, 'core/leitor_list.html', {'leitores': leitores, 'query': query})
 
 @login_required
+def leitor_create_self(request):
+    """Permite que um usuário recém-registrado crie seu próprio perfil de leitor"""
+    if hasattr(request.user, 'leitor'):
+        messages.info(request, 'Você já possui um cadastro de leitor.')
+        return redirect('home')
+    
+    if request.method == 'POST':
+        form = LeitorForm(request.POST)
+        if form.is_valid():
+            leitor = form.save(commit=False)
+            leitor.usuario = request.user
+            # Atualizar dados do usuário
+            request.user.first_name = form.cleaned_data['first_name']
+            request.user.last_name = form.cleaned_data['last_name']
+            request.user.email = form.cleaned_data['email']
+            request.user.save()
+            leitor.save()
+            messages.success(request, 'Cadastro de leitor concluído com sucesso!')
+            return redirect('home')
+    else:
+        form = LeitorForm(initial={
+            'first_name': request.user.first_name,
+            'last_name': request.user.last_name,
+            'email': request.user.email,
+        })
+    return render(request, 'core/leitor_form.html', {'form': form, 'self_register': True})
+
+@login_required
+@user_passes_test(is_funcionario)
 def leitor_create(request):
     if request.method == 'POST':
         form = LeitorForm(request.POST)
         if form.is_valid():
             # Criar usuário
-            username = form.cleaned_data['cpf']  # Usar CPF como username
+            username = form.cleaned_data['cpf']
             user = User.objects.create_user(
                 username=username,
                 email=form.cleaned_data['email'],
                 first_name=form.cleaned_data['first_name'],
                 last_name=form.cleaned_data['last_name'],
-                password='senha123'  # Senha padrão
+                password='senha123'
             )
+            # Adicionar ao grupo Leitores
+            try:
+                grupo_leitores = Group.objects.get(name='Leitores')
+                user.groups.add(grupo_leitores)
+            except Group.DoesNotExist:
+                pass
             # Criar leitor
             leitor = form.save(commit=False)
             leitor.usuario = user
@@ -101,6 +199,7 @@ def leitor_create(request):
     return render(request, 'core/leitor_form.html', {'form': form})
 
 @login_required
+@user_passes_test(is_funcionario)
 def leitor_update(request, pk):
     leitor = get_object_or_404(Leitor, pk=pk)
     if request.method == 'POST':
@@ -123,21 +222,24 @@ def leitor_update(request, pk):
     return render(request, 'core/leitor_form.html', {'form': form})
 
 @login_required
+@user_passes_test(is_funcionario)
 def leitor_delete(request, pk):
     leitor = get_object_or_404(Leitor, pk=pk)
     if request.method == 'POST':
-        leitor.usuario.delete()  # Deletar usuário também deleta o leitor
+        leitor.usuario.delete()
         messages.success(request, 'Leitor excluído com sucesso!')
         return redirect('leitor_list')
     return render(request, 'core/leitor_confirm_delete.html', {'leitor': leitor})
 
-# CRUD FUNCIONÁRIOS
+# CRUD FUNCIONÁRIOS (apenas funcionários)
 @login_required
+@user_passes_test(is_funcionario)
 def funcionario_list(request):
     funcionarios = Funcionario.objects.all().order_by('usuario__first_name')
     return render(request, 'core/funcionario_list.html', {'funcionarios': funcionarios})
 
 @login_required
+@user_passes_test(is_funcionario)
 def funcionario_create(request):
     if request.method == 'POST':
         form = FuncionarioForm(request.POST)
@@ -149,10 +251,16 @@ def funcionario_create(request):
                 email=form.cleaned_data['email'],
                 first_name=form.cleaned_data['first_name'],
                 last_name=form.cleaned_data['last_name'],
-                password='senha123'  # Senha padrão
+                password='senha123'
             )
-            user.is_staff = True  # Funcionário tem acesso ao admin
+            user.is_staff = True
             user.save()
+            # Adicionar ao grupo Funcionários
+            try:
+                grupo_funcionarios = Group.objects.get(name='Funcionários')
+                user.groups.add(grupo_funcionarios)
+            except Group.DoesNotExist:
+                pass
             # Criar funcionário
             funcionario = form.save(commit=False)
             funcionario.usuario = user
@@ -164,6 +272,7 @@ def funcionario_create(request):
     return render(request, 'core/funcionario_form.html', {'form': form})
 
 @login_required
+@user_passes_test(is_funcionario)
 def funcionario_update(request, pk):
     funcionario = get_object_or_404(Funcionario, pk=pk)
     if request.method == 'POST':
@@ -186,10 +295,11 @@ def funcionario_update(request, pk):
     return render(request, 'core/funcionario_form.html', {'form': form})
 
 @login_required
+@user_passes_test(is_funcionario)
 def funcionario_delete(request, pk):
     funcionario = get_object_or_404(Funcionario, pk=pk)
     if request.method == 'POST':
-        funcionario.usuario.delete()  # Deletar usuário também deleta o funcionário
+        funcionario.usuario.delete()
         messages.success(request, 'Funcionário excluído com sucesso!')
         return redirect('funcionario_list')
     return render(request, 'core/funcionario_confirm_delete.html', {'funcionario': funcionario})
@@ -197,16 +307,45 @@ def funcionario_delete(request, pk):
 # CRUD EMPRÉSTIMOS
 @login_required
 def emprestimo_list(request):
-    emprestimos = Emprestimo.objects.all().order_by('-data_emprestimo')
+    if is_funcionario(request.user):
+        emprestimos = Emprestimo.objects.all().order_by('-data_emprestimo')
+    else:
+        # Leitores só veem seus próprios empréstimos
+        try:
+            leitor = request.user.leitor
+            emprestimos = Emprestimo.objects.filter(leitor=leitor).order_by('-data_emprestimo')
+        except:
+            emprestimos = Emprestimo.objects.none()
+    
+    # Calcular multas
+    for emprestimo in emprestimos:
+        if not emprestimo.data_devolucao and emprestimo.data_devolucao_prevista < timezone.now().date():
+            dias_atraso = (timezone.now().date() - emprestimo.data_devolucao_prevista).days
+            emprestimo.multa = Decimal(dias_atraso * 2.00)  # R$ 2,00 por dia de atraso
+            emprestimo.save()
+    
     return render(request, 'core/emprestimo_list.html', {'emprestimos': emprestimos})
 
 @login_required
+@user_passes_test(is_funcionario)
 def emprestimo_create(request):
     if request.method == 'POST':
         form = EmprestimoForm(request.POST)
         if form.is_valid():
             emprestimo = form.save(commit=False)
-            # Verificar se o usuário é funcionário
+            # Verificar se o livro já está emprestado
+            if not emprestimo.livro.disponivel:
+                messages.error(request, 'Este livro já está emprestado!')
+                return redirect('emprestimo_create')
+            # Verificar se o leitor tem empréstimos em atraso
+            emprestimos_atraso = Emprestimo.objects.filter(
+                leitor=emprestimo.leitor,
+                data_devolucao__isnull=True,
+                data_devolucao_prevista__lt=timezone.now().date()
+            ).exists()
+            if emprestimos_atraso:
+                messages.warning(request, 'Atenção: Este leitor possui empréstimos em atraso!')
+            # Definir funcionário
             try:
                 funcionario = Funcionario.objects.get(usuario=request.user)
                 emprestimo.funcionario = funcionario
@@ -225,6 +364,7 @@ def emprestimo_create(request):
     return render(request, 'core/emprestimo_form.html', {'form': form})
 
 @login_required
+@user_passes_test(is_funcionario)
 def emprestimo_update(request, pk):
     emprestimo = get_object_or_404(Emprestimo, pk=pk)
     livro_anterior = emprestimo.livro
@@ -246,6 +386,7 @@ def emprestimo_update(request, pk):
     return render(request, 'core/emprestimo_form.html', {'form': form})
 
 @login_required
+@user_passes_test(is_funcionario)
 def emprestimo_delete(request, pk):
     emprestimo = get_object_or_404(Emprestimo, pk=pk)
     if request.method == 'POST':
@@ -257,13 +398,65 @@ def emprestimo_delete(request, pk):
         return redirect('emprestimo_list')
     return render(request, 'core/emprestimo_confirm_delete.html', {'emprestimo': emprestimo})
 
-# CRUD CATEGORIAS
 @login_required
+@user_passes_test(is_funcionario)
+def emprestimo_devolver(request, pk):
+    emprestimo = get_object_or_404(Emprestimo, pk=pk)
+    if request.method == 'POST':
+        emprestimo.data_devolucao = timezone.now().date()
+        # Calcular multa se houver atraso
+        if emprestimo.data_devolucao > emprestimo.data_devolucao_prevista:
+            dias_atraso = (emprestimo.data_devolucao - emprestimo.data_devolucao_prevista).days
+            emprestimo.multa = Decimal(dias_atraso * 2.00)  # R$ 2,00 por dia
+        emprestimo.save()
+        # Marcar livro como disponível
+        emprestimo.livro.disponivel = True
+        emprestimo.livro.save()
+        if emprestimo.multa > 0:
+            messages.warning(request, f'Devolução realizada com multa de R$ {emprestimo.multa:.2f}')
+        else:
+            messages.success(request, 'Devolução realizada com sucesso!')
+        return redirect('emprestimo_list')
+    return render(request, 'core/emprestimo_devolver.html', {'emprestimo': emprestimo})
+
+@login_required
+def emprestimo_renovar(request, pk):
+    emprestimo = get_object_or_404(Emprestimo, pk=pk)
+    
+    # Verificar se o usuário pode renovar
+    if not is_funcionario(request.user):
+        try:
+            leitor = request.user.leitor
+            if emprestimo.leitor != leitor:
+                messages.error(request, 'Você só pode renovar seus próprios empréstimos!')
+                return redirect('emprestimo_list')
+        except:
+            messages.error(request, 'Acesso negado!')
+            return redirect('home')
+    
+    if request.method == 'POST':
+        # Verificar se não está em atraso
+        if emprestimo.data_devolucao_prevista < timezone.now().date():
+            messages.error(request, 'Não é possível renovar empréstimos em atraso!')
+            return redirect('emprestimo_list')
+        
+        # Renovar por mais 14 dias
+        emprestimo.data_devolucao_prevista = emprestimo.data_devolucao_prevista + timedelta(days=14)
+        emprestimo.save()
+        messages.success(request, 'Empréstimo renovado com sucesso!')
+        return redirect('emprestimo_list')
+    
+    return render(request, 'core/emprestimo_renovar.html', {'emprestimo': emprestimo})
+
+# CRUD CATEGORIAS (apenas funcionários)
+@login_required
+@user_passes_test(is_funcionario)
 def categoria_list(request):
     categorias = Categoria.objects.all().order_by('nome')
     return render(request, 'core/categoria_list.html', {'categorias': categorias})
 
 @login_required
+@user_passes_test(is_funcionario)
 def categoria_create(request):
     if request.method == 'POST':
         form = CategoriaForm(request.POST)
@@ -276,6 +469,7 @@ def categoria_create(request):
     return render(request, 'core/categoria_form.html', {'form': form})
 
 @login_required
+@user_passes_test(is_funcionario)
 def categoria_update(request, pk):
     categoria = get_object_or_404(Categoria, pk=pk)
     if request.method == 'POST':
@@ -289,6 +483,7 @@ def categoria_update(request, pk):
     return render(request, 'core/categoria_form.html', {'form': form})
 
 @login_required
+@user_passes_test(is_funcionario)
 def categoria_delete(request, pk):
     categoria = get_object_or_404(Categoria, pk=pk)
     if request.method == 'POST':
@@ -296,3 +491,27 @@ def categoria_delete(request, pk):
         messages.success(request, 'Categoria excluída com sucesso!')
         return redirect('categoria_list')
     return render(request, 'core/categoria_confirm_delete.html', {'categoria': categoria})
+
+# Views de relatórios
+@login_required
+@user_passes_test(is_funcionario)
+def relatorio_livros_populares(request):
+    livros = Livro.objects.annotate(
+        num_emprestimos=Count('emprestimo')
+    ).order_by('-num_emprestimos')[:10]
+    return render(request, 'core/relatorio_livros_populares.html', {'livros': livros})
+
+@login_required
+@user_passes_test(is_funcionario)
+def relatorio_atrasos(request):
+    emprestimos_atraso = Emprestimo.objects.filter(
+        data_devolucao__isnull=True,
+        data_devolucao_prevista__lt=timezone.now().date()
+    ).order_by('data_devolucao_prevista')
+    
+    # Calcular multas
+    for emprestimo in emprestimos_atraso:
+        dias_atraso = (timezone.now().date() - emprestimo.data_devolucao_prevista).days
+        emprestimo.multa_atual = Decimal(dias_atraso * 2.00)
+    
+    return render(request, 'core/relatorio_atrasos.html', {'emprestimos': emprestimos_atraso})
