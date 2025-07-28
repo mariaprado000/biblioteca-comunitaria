@@ -1,3 +1,4 @@
+# core/urls.py
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
@@ -20,6 +21,7 @@ urlpatterns = [
     # CRUD Leitores
     path('leitores/', views.leitor_list, name='leitor_list'),
     path('leitores/adicionar/', views.leitor_create, name='leitor_create'),
+    path('leitores/meu-cadastro/', views.leitor_create_self, name='leitor_create_self'),
     path('leitores/<int:pk>/editar/', views.leitor_update, name='leitor_update'),
     path('leitores/<int:pk>/excluir/', views.leitor_delete, name='leitor_delete'),
     
@@ -34,10 +36,16 @@ urlpatterns = [
     path('emprestimos/adicionar/', views.emprestimo_create, name='emprestimo_create'),
     path('emprestimos/<int:pk>/editar/', views.emprestimo_update, name='emprestimo_update'),
     path('emprestimos/<int:pk>/excluir/', views.emprestimo_delete, name='emprestimo_delete'),
+    path('emprestimos/<int:pk>/devolver/', views.emprestimo_devolver, name='emprestimo_devolver'),
+    path('emprestimos/<int:pk>/renovar/', views.emprestimo_renovar, name='emprestimo_renovar'),
     
     # CRUD Categorias
     path('categorias/', views.categoria_list, name='categoria_list'),
     path('categorias/adicionar/', views.categoria_create, name='categoria_create'),
     path('categorias/<int:pk>/editar/', views.categoria_update, name='categoria_update'),
     path('categorias/<int:pk>/excluir/', views.categoria_delete, name='categoria_delete'),
+    
+    # Relatórios
+    path('relatorios/livros-populares/', views.relatorio_livros_populares, name='relatorio_livros_populares'),
+    path('relatorios/atrasos/', views.relatorio_atrasos, name='relatorio_atrasos'),
 ]
