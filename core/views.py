@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.contrib.auth.models import User, Group
 from django.db.models import Count, Q
+from django.db import transaction 
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
@@ -307,10 +308,16 @@ def funcionario_delete(request, pk):
 # CRUD EMPRÉSTIMOS
 @login_required
 def emprestimo_list(request):
+    emprestimos_atrasados = 0  # Inicializar a variável
+    
     if is_funcionario(request.user):
         emprestimos = Emprestimo.objects.all().order_by('-data_emprestimo')
+        # Contar empréstimos atrasados
+        emprestimos_atrasados = Emprestimo.objects.filter(
+            data_devolucao__isnull=True,
+            data_devolucao_prevista__lt=timezone.now().date()
+        ).count()
     else:
-        # Leitores só veem seus próprios empréstimos
         try:
             leitor = request.user.leitor
             emprestimos = Emprestimo.objects.filter(leitor=leitor).order_by('-data_emprestimo')
@@ -324,7 +331,11 @@ def emprestimo_list(request):
             emprestimo.multa = Decimal(dias_atraso * 2.00)  # R$ 2,00 por dia de atraso
             emprestimo.save()
     
-    return render(request, 'core/emprestimo_list.html', {'emprestimos': emprestimos})
+    return render(request, 'core/emprestimo_list.html', {
+        'emprestimos': emprestimos,
+        'emprestimos_atrasados': emprestimos_atrasados,
+        'today': timezone.now().date()
+    })
 
 @login_required
 @user_passes_test(is_funcionario)
@@ -333,19 +344,37 @@ def emprestimo_create(request):
         form = EmprestimoForm(request.POST)
         if form.is_valid():
             emprestimo = form.save(commit=False)
-            # Verificar se o livro já está emprestado
-            if not emprestimo.livro.disponivel:
+            
+            # ADICIONAR: Verificação mais segura
+            livro = Livro.objects.select_for_update().get(pk=emprestimo.livro.pk)
+            
+            if not livro.disponivel:
                 messages.error(request, 'Este livro já está emprestado!')
+                form = EmprestimoForm()  # Resetar o form
+                form.fields['livro'].queryset = Livro.objects.filter(disponivel=True)
+                return render(request, 'core/emprestimo_form.html', {'form': form})
+            
+            # ADICIONAR: Verificar limite de empréstimos
+            emprestimos_ativos = Emprestimo.objects.filter(
+                leitor=emprestimo.leitor,
+                data_devolucao__isnull=True
+            ).count()
+            
+            if emprestimos_ativos >= 3:  # Limite de 3 livros
+                messages.error(request, 'Este leitor já possui 3 livros emprestados!')
                 return redirect('emprestimo_create')
-            # Verificar se o leitor tem empréstimos em atraso
+            
+            # Verificar empréstimos em atraso (já existe mas melhorar)
             emprestimos_atraso = Emprestimo.objects.filter(
                 leitor=emprestimo.leitor,
                 data_devolucao__isnull=True,
                 data_devolucao_prevista__lt=timezone.now().date()
-            ).exists()
-            if emprestimos_atraso:
-                messages.warning(request, 'Atenção: Este leitor possui empréstimos em atraso!')
-            # Definir funcionário
+            )
+            
+            if emprestimos_atraso.exists():
+                livros_atrasados = ', '.join([e.livro.titulo for e in emprestimos_atraso])
+                messages.warning(request, f'ATENÇÃO: Este leitor possui os seguintes livros em atraso: {livros_atrasados}')
+
             try:
                 funcionario = Funcionario.objects.get(usuario=request.user)
                 emprestimo.funcionario = funcionario
@@ -402,20 +431,21 @@ def emprestimo_delete(request, pk):
 @user_passes_test(is_funcionario)
 def emprestimo_devolver(request, pk):
     emprestimo = get_object_or_404(Emprestimo, pk=pk)
+    
     if request.method == 'POST':
         emprestimo.data_devolucao = timezone.now().date()
-        # Calcular multa se houver atraso
+        
+        # MELHORAR: Cálculo de multa mais claro
         if emprestimo.data_devolucao > emprestimo.data_devolucao_prevista:
             dias_atraso = (emprestimo.data_devolucao - emprestimo.data_devolucao_prevista).days
-            emprestimo.multa = Decimal(dias_atraso * 2.00)  # R$ 2,00 por dia
-        emprestimo.save()
-        # Marcar livro como disponível
-        emprestimo.livro.disponivel = True
-        emprestimo.livro.save()
-        if emprestimo.multa > 0:
-            messages.warning(request, f'Devolução realizada com multa de R$ {emprestimo.multa:.2f}')
+            emprestimo.multa = Decimal(str(dias_atraso * 2.00))  # Usar string para Decimal
+            
+            # Log para debug
+            print(f"Dias atraso: {dias_atraso}, Multa: {emprestimo.multa}")
         else:
-            messages.success(request, 'Devolução realizada com sucesso!')
+            emprestimo.multa = Decimal('0.00')
+        
+        emprestimo.save()
         return redirect('emprestimo_list')
     return render(request, 'core/emprestimo_devolver.html', {'emprestimo': emprestimo})
 
@@ -435,19 +465,26 @@ def emprestimo_renovar(request, pk):
             return redirect('home')
     
     if request.method == 'POST':
-        # Verificar se não está em atraso
-        if emprestimo.data_devolucao_prevista < timezone.now().date():
-            messages.error(request, 'Não é possível renovar empréstimos em atraso!')
+            # Verificar se não está em atraso
+            if emprestimo.data_devolucao_prevista < timezone.now().date():
+                messages.error(request, 'Não é possível renovar empréstimos em atraso!')
+                return redirect('emprestimo_list')
+            
+            
+            # Renovar por mais 14 dias
+            nova_data = emprestimo.data_devolucao_prevista + timedelta(days=14)
+            
+            # ADICIONAR: Verificar se não ultrapassa 60 dias totais
+            dias_totais = (nova_data - emprestimo.data_emprestimo.date()).days
+            if dias_totais > 60:
+                messages.error(request, 'O empréstimo não pode exceder 60 dias no total!')
+                return redirect('emprestimo_list')
+            
+            emprestimo.data_devolucao_prevista = nova_data
+            emprestimo.save()
+            messages.success(request, f'Empréstimo renovado até {nova_data.strftime("%d/%m/%Y")}!')
             return redirect('emprestimo_list')
-        
-        # Renovar por mais 14 dias
-        emprestimo.data_devolucao_prevista = emprestimo.data_devolucao_prevista + timedelta(days=14)
-        emprestimo.save()
-        messages.success(request, 'Empréstimo renovado com sucesso!')
-        return redirect('emprestimo_list')
     
-    return render(request, 'core/emprestimo_renovar.html', {'emprestimo': emprestimo})
-
 # CRUD CATEGORIAS (apenas funcionários)
 @login_required
 @user_passes_test(is_funcionario)

@@ -1,4 +1,5 @@
 {% extends 'core/base.html' %}
+{% load tz %}
 
 {% block title %}Devolver Empréstimo{% endblock %}
 
@@ -18,8 +19,8 @@
                     <li class="list-group-item"><strong>Data Prevista:</strong> {{ emprestimo.data_devolucao_prevista|date:"d/m/Y" }}</li>
                     <li class="list-group-item">
                         <strong>Status:</strong> 
-                        {% now "Y-m-d" as today %}
-                        {% if emprestimo.data_devolucao_prevista < today %}
+                        {% now "Y-m-d" as today_str %}
+                        {% if emprestimo.data_devolucao_prevista|date:"Y-m-d" < today_str %}
                             <span class="badge badge-danger">Em Atraso</span>
                         {% else %}
                             <span class="badge badge-success">No Prazo</span>
