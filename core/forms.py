@@ -1,7 +1,10 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
+from django.utils import timezone
 from .models import Livro, Leitor, Funcionario, Emprestimo, Categoria
+from datetime import timedelta
+import re
 
 class LivroForm(forms.ModelForm):
     class Meta:
@@ -32,6 +35,24 @@ class LeitorForm(forms.ModelForm):
             'endereco': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'data_nascimento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
+    # ADICIONAR ESTES MÉTODOS AQUI (dentro da classe)
+    def clean_data_nascimento(self):
+        from django.utils import timezone
+        data = self.cleaned_data['data_nascimento']
+        idade = (timezone.now().date() - data).days / 365.25
+        
+        if idade < 10:
+            raise forms.ValidationError('Leitor deve ter pelo menos 10 anos')
+        if idade > 120:
+            raise forms.ValidationError('Data de nascimento inválida')
+        
+        return data
+    
+    def clean_cpf(self):
+        cpf = self.cleaned_data['cpf']
+        # Remove pontos e traços se o usuário digitou
+        cpf = re.sub(r'[^0-9]', '', cpf)
+        return cpf
 
 class FuncionarioForm(forms.ModelForm):
     first_name = forms.CharField(max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
@@ -47,6 +68,17 @@ class FuncionarioForm(forms.ModelForm):
             'data_admissao': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
 
+    def clean_salario(self):
+        salario = self.cleaned_data['salario']
+        
+        if salario < 1412:  # Salário mínimo 2024
+            raise forms.ValidationError('Salário não pode ser menor que R$ 1.412,00')
+        
+        if salario > 100000:
+            raise forms.ValidationError('Valor de salário inválido (máximo: R$ 100.000,00)')
+        
+        return salario
+
 class EmprestimoForm(forms.ModelForm):
     class Meta:
         model = Emprestimo
@@ -56,7 +88,19 @@ class EmprestimoForm(forms.ModelForm):
             'leitor': forms.Select(attrs={'class': 'form-control'}),
             'data_devolucao_prevista': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
-
+    
+    def clean_data_devolucao_prevista(self):
+        from django.utils import timezone
+        data = self.cleaned_data['data_devolucao_prevista']
+        
+        if data < timezone.now().date():
+            raise forms.ValidationError('A data de devolução não pode ser no passado!')
+        
+        if data > timezone.now().date() + timedelta(days=30):
+            raise forms.ValidationError('O prazo máximo de empréstimo é de 30 dias!')
+        
+        return data
+    
 class CategoriaForm(forms.ModelForm):
     class Meta:
         model = Categoria
