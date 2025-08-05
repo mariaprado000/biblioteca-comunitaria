@@ -8,12 +8,10 @@ Sistema de gerenciamento de biblioteca com controle de livros, leitores, funcion
 
 ## Integrantes do Grupo
 
-- [Nome do Integrante 1] - RA: [RA]
-- [Nome do Integrante 2] - RA: [RA]
-- [Nome do Integrante 3] - RA: [RA]
-
-## Como Executar Localmente
-
+- Maria de Fátima Prado Neves 
+- Raifran Santos Guimarães 
+- Eduarda Teixeira Santos Fraga 
+  
 ### Pré-requisitos
 - Python 3.8 ou superior
 - pip
