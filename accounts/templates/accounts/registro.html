@@ -1,0 +1,29 @@
+{% extends 'appdashboard/base.html' %}
+{% load bootstrap4 %}
+
+{% block title %}Registro - Biblioteca Comunitária{% endblock %}
+
+{% block content %}
+<div class='row justify-content-center'>
+    <div class='col-md-6'>
+        <div class='card'>
+            <div class='card-header'>
+                <h4><i class='fas fa-user-plus'></i> Registro de Novo Usuário</h4>
+            </div>
+            <div class='card-body'>
+                <form method='post'>
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                    <button type='submit' class='btn btn-success btn-block'>
+                        <i class='fas fa-user-plus'></i> Registrar
+                    </button>
+                </form>
+                <hr>
+                <p class='text-center'>
+                    Já tem uma conta? <a href='{% url 'login' %}'>Faça login aqui</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
