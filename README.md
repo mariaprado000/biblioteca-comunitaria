@@ -23,7 +23,7 @@ Sistema profissional de gerenciamento de biblioteca com funcionalidades completa
 - ✅ **Bootstrap 5**: Interface moderna e responsiva
 - ✅ **SQLite**: Banco de dados integrado (pronto para produção)
 
-## 👥 Integrantes do Grupo
+## Integrantes do Grupo
 
 - **Maria de Fátima Prado Neves** 
 - **Raifran Santos Guimarães** 
