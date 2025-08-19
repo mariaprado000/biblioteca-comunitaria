@@ -5,6 +5,7 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from django.core.exceptions import ValidationError
 from .models import Emprestimo
+from .forms import EmprestimoForm, RenovacaoForm, DevolucaoForm
 from app_livro.models import Livro
 from app_leitor.models import Leitor
 from app_funcionario.models import Funcionario
@@ -50,54 +51,35 @@ def emprestimo_list(request):
 @funcionario_required
 def emprestimo_create(request):
     if request.method == 'POST':
-        try:
-            livro_id = request.POST.get('livro')
-            leitor_id = request.POST.get('leitor')
-            dias_emprestimo = int(request.POST.get('dias_emprestimo', 14))
-            
-            livro = get_object_or_404(Livro, pk=livro_id)
-            leitor = get_object_or_404(Leitor, pk=leitor_id)
-            
-            # Verificar se livro está disponível
-            if not livro.disponivel:
-                messages.error(request, 'Este livro não está disponível para empréstimo.')
-                return redirect('app_emprestimo:criar')
-            
-            # Verificar se leitor está ativo
-            if not leitor.ativo:
-                messages.error(request, 'Este leitor está inativo.')
-                return redirect('app_emprestimo:criar')
-            
-            # Obter funcionário atual
-            funcionario = get_object_or_404(Funcionario, usuario=request.user)
-            
-            # Criar empréstimo
-            data_devolucao_prevista = timezone.now().date() + timedelta(days=dias_emprestimo)
-            
-            emprestimo = Emprestimo(
-                livro=livro,
-                leitor=leitor,
-                emprestado_por=funcionario,
-                data_devolucao_prevista=data_devolucao_prevista
-            )
-            emprestimo.save()
-            
-            # Marcar livro como indisponível
-            livro.disponivel = False
-            livro.save()
-            
-            messages.success(request, 'Empréstimo realizado com sucesso!')
-            return redirect('app_emprestimo:listar')
-            
-        except Exception as e:
-            messages.error(request, f'Erro ao criar empréstimo: {e}')
-    
-    livros_disponiveis = Livro.objects.filter(disponivel=True).order_by('titulo')
-    leitores_ativos = Leitor.objects.filter(ativo=True).order_by('usuario__first_name')
+        form = EmprestimoForm(request.POST)
+        if form.is_valid():
+            try:
+                # Obter funcionário atual
+                funcionario = get_object_or_404(Funcionario, usuario=request.user)
+                
+                # Criar empréstimo
+                dias_emprestimo = form.cleaned_data['dias_emprestimo']
+                data_devolucao_prevista = timezone.now().date() + timedelta(days=dias_emprestimo)
+                
+                emprestimo = form.save(commit=False)
+                emprestimo.emprestado_por = funcionario
+                emprestimo.data_devolucao_prevista = data_devolucao_prevista
+                emprestimo.save()
+                
+                # Marcar livro como indisponível
+                emprestimo.livro.disponivel = False
+                emprestimo.livro.save()
+                
+                messages.success(request, 'Empréstimo realizado com sucesso!')
+                return redirect('app_emprestimo:listar')
+                
+            except Exception as e:
+                messages.error(request, f'Erro ao criar empréstimo: {e}')
+    else:
+        form = EmprestimoForm()
     
     context = {
-        'livros': livros_disponiveis,
-        'leitores': leitores_ativos
+        'form': form
     }
     return render(request, 'app_emprestimo/form.html', context)
 
@@ -111,32 +93,37 @@ def emprestimo_devolver(request, pk):
         return redirect('app_emprestimo:listar')
     
     if request.method == 'POST':
-        try:
-            # Marcar data de devolução
-            emprestimo.data_devolucao = timezone.now().date()
-            
-            # Calcular multa se houver atraso
-            emprestimo.multa = emprestimo.calcular_multa()
-            emprestimo.save()
-            
-            # Marcar livro como disponível
-            emprestimo.livro.disponivel = True
-            emprestimo.livro.save()
-            
-            if emprestimo.multa > 0:
-                messages.warning(request, f'Livro devolvido com multa de R$ {emprestimo.multa:.2f}')
-            else:
-                messages.success(request, 'Livro devolvido com sucesso!')
+        form = DevolucaoForm(request.POST)
+        if form.is_valid():
+            try:
+                # Marcar data de devolução
+                emprestimo.data_devolucao = timezone.now().date()
                 
-            return redirect('app_emprestimo:listar')
-            
-        except Exception as e:
-            messages.error(request, f'Erro ao devolver livro: {e}')
+                # Calcular multa se houver atraso
+                emprestimo.multa = emprestimo.calcular_multa()
+                emprestimo.save()
+                
+                # Marcar livro como disponível
+                emprestimo.livro.disponivel = True
+                emprestimo.livro.save()
+                
+                if emprestimo.multa > 0:
+                    messages.warning(request, f'Livro devolvido com multa de R$ {emprestimo.multa:.2f}')
+                else:
+                    messages.success(request, 'Livro devolvido com sucesso!')
+                    
+                return redirect('app_emprestimo:listar')
+                
+            except Exception as e:
+                messages.error(request, f'Erro ao devolver livro: {e}')
+    else:
+        form = DevolucaoForm()
     
     # Calcular multa atual (se houver)
     multa_atual = emprestimo.calcular_multa()
     
     context = {
+        'form': form,
         'object': emprestimo,
         'multa_atual': multa_atual
     }
@@ -156,21 +143,26 @@ def emprestimo_renovar(request, pk):
         return redirect('app_emprestimo:listar')
     
     if request.method == 'POST':
-        try:
-            dias_renovacao = int(request.POST.get('dias_renovacao', 14))
-            
-            # Renovar empréstimo
-            emprestimo.data_devolucao_prevista += timedelta(days=dias_renovacao)
-            emprestimo.renovacao += 1
-            emprestimo.save()
-            
-            messages.success(request, f'Empréstimo renovado por {dias_renovacao} dias!')
-            return redirect('app_emprestimo:listar')
-            
-        except Exception as e:
-            messages.error(request, f'Erro ao renovar empréstimo: {e}')
+        form = RenovacaoForm(request.POST)
+        if form.is_valid():
+            try:
+                dias_renovacao = form.cleaned_data['dias_renovacao']
+                
+                # Renovar empréstimo
+                emprestimo.data_devolucao_prevista += timedelta(days=dias_renovacao)
+                emprestimo.renovacao += 1
+                emprestimo.save()
+                
+                messages.success(request, f'Empréstimo renovado por {dias_renovacao} dias!')
+                return redirect('app_emprestimo:listar')
+                
+            except Exception as e:
+                messages.error(request, f'Erro ao renovar empréstimo: {e}')
+    else:
+        form = RenovacaoForm()
     
     context = {
+        'form': form,
         'object': emprestimo
     }
     return render(request, 'app_emprestimo/renovar.html', context)

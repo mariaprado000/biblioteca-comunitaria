@@ -59,17 +59,42 @@
                     </ul>
                 </div>
                 
-                <form method="post" class="d-inline">
+                <form method="post">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-check"></i> Confirmar Devolução
-                        {% if multa_atual > 0 %}
-                            (R$ {{ multa_atual|floatformat:2 }})
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.confirmar_devolucao }}
+                            <label class="form-check-label" for="{{ form.confirmar_devolucao.id_for_label }}">
+                                {{ form.confirmar_devolucao.label }}
+                                {% if multa_atual > 0 %}
+                                    <span class="text-danger">(com multa de R$ {{ multa_atual|floatformat:2 }})</span>
+                                {% endif %}
+                            </label>
+                        </div>
+                        {% if form.confirmar_devolucao.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.confirmar_devolucao.errors %}
+                                    <small>{{ error }}</small><br>
+                                {% endfor %}
+                            </div>
                         {% endif %}
-                    </button>
-                    <a href="{% url 'app_emprestimo:listar' %}" class="btn btn-secondary ms-2">
-                        Cancelar
-                    </a>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'app_emprestimo:listar' %}" class="btn btn-secondary me-md-2">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check"></i> Confirmar Devolução
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

@@ -42,13 +42,25 @@
                 <form method="post">
                     {% csrf_token %}
                     
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    
                     <div class="mb-3">
-                        <label for="dias_renovacao" class="form-label">Período de Renovação</label>
-                        <select class="form-select" id="dias_renovacao" name="dias_renovacao">
-                            <option value="7">7 dias</option>
-                            <option value="14" selected>14 dias (padrão)</option>
-                            <option value="21">21 dias</option>
-                        </select>
+                        <label for="{{ form.dias_renovacao.id_for_label }}" class="form-label">{{ form.dias_renovacao.label }}</label>
+                        {{ form.dias_renovacao }}
+                        {% if form.dias_renovacao.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.dias_renovacao.errors %}
+                                    <small>{{ error }}</small><br>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.dias_renovacao.help_text %}
+                            <div class="form-text">{{ form.dias_renovacao.help_text }}</div>
+                        {% endif %}
                     </div>
                     
                     <div class="mb-3">

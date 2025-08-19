@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from .models import Livro
+from .forms import LivroForm
 from app_categoria.models import Categoria
 from biblioteca.decorators import funcionario_or_leitor_required, funcionario_required
 
@@ -39,29 +40,16 @@ def livro_list(request):
 @funcionario_required
 def livro_create(request):
     if request.method == 'POST':
-        try:
-            livro = Livro(
-                titulo=request.POST.get('titulo'),
-                autor=request.POST.get('autor'),
-                ano=int(request.POST.get('ano')),
-                genero=request.POST.get('genero'),
-                isbn=request.POST.get('isbn', ''),
-                editora=request.POST.get('editora', '')
-            )
-            
-            categoria_id = request.POST.get('categoria')
-            if categoria_id:
-                livro.categoria_id = categoria_id
-            
-            livro.full_clean()
-            livro.save()
+        form = LivroForm(request.POST)
+        if form.is_valid():
+            form.save()
             messages.success(request, 'Livro criado com sucesso!')
             return redirect('app_livro:listar')
-        except (ValueError, ValidationError) as e:
-            messages.error(request, f'Erro ao criar livro: {e}')
+    else:
+        form = LivroForm()
     
     categorias = Categoria.objects.all().order_by('nome')
-    return render(request, 'app_livro/form.html', {'categorias': categorias})
+    return render(request, 'app_livro/form.html', {'form': form, 'categorias': categorias})
 
 @login_required
 @funcionario_required
@@ -69,29 +57,16 @@ def livro_update(request, pk):
     livro = get_object_or_404(Livro, pk=pk)
     
     if request.method == 'POST':
-        try:
-            livro.titulo = request.POST.get('titulo')
-            livro.autor = request.POST.get('autor')
-            livro.ano = int(request.POST.get('ano'))
-            livro.genero = request.POST.get('genero')
-            livro.isbn = request.POST.get('isbn', '')
-            livro.editora = request.POST.get('editora', '')
-            
-            categoria_id = request.POST.get('categoria')
-            if categoria_id:
-                livro.categoria_id = categoria_id
-            else:
-                livro.categoria = None
-            
-            livro.full_clean()
-            livro.save()
+        form = LivroForm(request.POST, instance=livro)
+        if form.is_valid():
+            form.save()
             messages.success(request, 'Livro atualizado com sucesso!')
             return redirect('app_livro:listar')
-        except (ValueError, ValidationError) as e:
-            messages.error(request, f'Erro ao atualizar livro: {e}')
+    else:
+        form = LivroForm(instance=livro)
     
     categorias = Categoria.objects.all().order_by('nome')
-    return render(request, 'app_livro/form.html', {'object': livro, 'categorias': categorias})
+    return render(request, 'app_livro/form.html', {'form': form, 'object': livro, 'categorias': categorias})
 
 @login_required
 @funcionario_required

@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Categoria
+from .forms import CategoriaForm
 from biblioteca.decorators import funcionario_or_leitor_required, funcionario_required
 
 @login_required
@@ -23,24 +24,28 @@ def categoria_list(request):
 @funcionario_required
 def categoria_create(request):
     if request.method == 'POST':
-        nome = request.POST.get('nome')
-        descricao = request.POST.get('descricao', '')
-        Categoria.objects.create(nome=nome, descricao=descricao)
-        messages.success(request, 'Categoria criada com sucesso!')
-        return redirect('app_categoria:listar')
-    return render(request, 'app_categoria/form.html')
+        form = CategoriaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Categoria criada com sucesso!')
+            return redirect('app_categoria:listar')
+    else:
+        form = CategoriaForm()
+    return render(request, 'app_categoria/form.html', {'form': form})
 
 @login_required
 @funcionario_required
 def categoria_update(request, pk):
     categoria = get_object_or_404(Categoria, pk=pk)
     if request.method == 'POST':
-        categoria.nome = request.POST.get('nome')
-        categoria.descricao = request.POST.get('descricao', '')
-        categoria.save()
-        messages.success(request, 'Categoria atualizada com sucesso!')
-        return redirect('app_categoria:listar')
-    return render(request, 'app_categoria/form.html', {'object': categoria})
+        form = CategoriaForm(request.POST, instance=categoria)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Categoria atualizada com sucesso!')
+            return redirect('app_categoria:listar')
+    else:
+        form = CategoriaForm(instance=categoria)
+    return render(request, 'app_categoria/form.html', {'form': form, 'object': categoria})
 
 @login_required
 @funcionario_required

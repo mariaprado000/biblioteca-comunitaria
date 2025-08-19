@@ -1,10 +1,11 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from .models import Leitor
+from .forms import LeitorForm
 from biblioteca.decorators import funcionario_required
 
 @login_required
@@ -35,36 +36,44 @@ def leitor_list(request):
 @funcionario_required
 def leitor_create(request):
     if request.method == 'POST':
-        try:
-            with transaction.atomic():
-                # Criar usuário
-                user = User.objects.create_user(
-                    username=request.POST.get('username'),
-                    email=request.POST.get('email', ''),
-                    first_name=request.POST.get('first_name'),
-                    last_name=request.POST.get('last_name'),
-                    password=request.POST.get('password')
-                )
-                
-                # Criar leitor
-                leitor = Leitor(
-                    usuario=user,
-                    cpf=request.POST.get('cpf'),
-                    telefone=request.POST.get('telefone'),
-                    endereco=request.POST.get('endereco'),
-                    data_nascimento=request.POST.get('data_nascimento')
-                )
-                leitor.full_clean()
-                leitor.save()
-                
-                messages.success(request, 'Leitor criado com sucesso!')
-                return redirect('app_leitor:listar')
-        except ValidationError as e:
-            messages.error(request, f'Erro de validação: {e}')
-        except Exception as e:
-            messages.error(request, f'Erro ao criar leitor: {e}')
+        form = LeitorForm(request.POST)
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        if form.is_valid() and username and password:
+            try:
+                with transaction.atomic():
+                    # Criar usuário
+                    user = User.objects.create_user(
+                        username=username,
+                        email=form.cleaned_data['email'],
+                        first_name=form.cleaned_data['first_name'],
+                        last_name=form.cleaned_data['last_name'],
+                        password=password
+                    )
+                    
+                    # Adicionar ao grupo Leitores
+                    leitores_group, created = Group.objects.get_or_create(name='Leitores')
+                    user.groups.add(leitores_group)
+                    
+                    # Criar leitor
+                    leitor = form.save(commit=False)
+                    leitor.usuario = user
+                    leitor.save()
+                    
+                    messages.success(request, 'Leitor criado com sucesso!')
+                    return redirect('app_leitor:listar')
+            except Exception as e:
+                messages.error(request, f'Erro ao criar leitor: {e}')
+        else:
+            if not username:
+                messages.error(request, 'Nome de usuário é obrigatório')
+            if not password:
+                messages.error(request, 'Senha é obrigatória')
+    else:
+        form = LeitorForm()
     
-    return render(request, 'app_leitor/form.html')
+    return render(request, 'app_leitor/form.html', {'form': form})
 
 @login_required
 @funcionario_required
@@ -72,40 +81,47 @@ def leitor_update(request, pk):
     leitor = get_object_or_404(Leitor, pk=pk)
     
     if request.method == 'POST':
-        try:
-            with transaction.atomic():
-                # Atualizar usuário
-                user = leitor.usuario
-                user.username = request.POST.get('username')
-                user.email = request.POST.get('email', '')
-                user.first_name = request.POST.get('first_name')
-                user.last_name = request.POST.get('last_name')
-                
-                # Atualizar senha se fornecida
-                new_password = request.POST.get('password')
-                if new_password:
-                    user.set_password(new_password)
-                
-                user.save()
-                
-                # Atualizar leitor
-                leitor.cpf = request.POST.get('cpf')
-                leitor.telefone = request.POST.get('telefone')
-                leitor.endereco = request.POST.get('endereco')
-                leitor.data_nascimento = request.POST.get('data_nascimento')
-                leitor.ativo = request.POST.get('ativo') == 'on'
-                
-                leitor.full_clean()
-                leitor.save()
-                
-                messages.success(request, 'Leitor atualizado com sucesso!')
-                return redirect('app_leitor:listar')
-        except ValidationError as e:
-            messages.error(request, f'Erro de validação: {e}')
-        except Exception as e:
-            messages.error(request, f'Erro ao atualizar leitor: {e}')
+        form = LeitorForm(request.POST, instance=leitor)
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    # Atualizar usuário
+                    user = leitor.usuario
+                    if username:
+                        user.username = username
+                    user.email = form.cleaned_data['email']
+                    user.first_name = form.cleaned_data['first_name']
+                    user.last_name = form.cleaned_data['last_name']
+                    
+                    # Atualizar senha se fornecida
+                    if password:
+                        user.set_password(password)
+                    
+                    user.save()
+                    
+                    # Atualizar leitor
+                    leitor = form.save(commit=False)
+                    leitor.ativo = request.POST.get('ativo') == 'on'
+                    leitor.save()
+                    
+                    messages.success(request, 'Leitor atualizado com sucesso!')
+                    return redirect('app_leitor:listar')
+            except Exception as e:
+                messages.error(request, f'Erro ao atualizar leitor: {e}')
+    else:
+        form = LeitorForm(instance=leitor, initial={
+            'first_name': leitor.usuario.first_name,
+            'last_name': leitor.usuario.last_name,
+            'email': leitor.usuario.email,
+        })
     
-    return render(request, 'app_leitor/form.html', {'object': leitor})
+    return render(request, 'app_leitor/form.html', {
+        'form': form, 
+        'object': leitor
+    })
 
 @login_required
 @funcionario_required

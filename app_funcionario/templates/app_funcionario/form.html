@@ -28,6 +28,12 @@
                 <form method="post">
                     {% csrf_token %}
                     
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    
                     <h6 class="mb-3 text-primary">Dados do Usuário</h6>
                     <div class="row">
                         <div class="col-md-4">
@@ -43,24 +49,28 @@
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="first_name" class="form-label">Nome *</label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="first_name" 
-                                       name="first_name" 
-                                       value="{% if object %}{{ object.usuario.first_name }}{% endif %}"
-                                       required>
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }} *</label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.first_name.errors %}
+                                            <small>{{ error }}</small><br>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="last_name" class="form-label">Sobrenome *</label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="last_name" 
-                                       name="last_name" 
-                                       value="{% if object %}{{ object.usuario.last_name }}{% endif %}"
-                                       required>
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }} *</label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.last_name.errors %}
+                                            <small>{{ error }}</small><br>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -68,12 +78,15 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" 
-                                       class="form-control" 
-                                       id="email" 
-                                       name="email" 
-                                       value="{% if object %}{{ object.usuario.email }}{% endif %}">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.email.errors %}
+                                            <small>{{ error }}</small><br>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -95,37 +108,41 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="cargo" class="form-label">Cargo *</label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="cargo" 
-                                       name="cargo" 
-                                       value="{% if object %}{{ object.cargo }}{% endif %}"
-                                       required>
+                                <label for="{{ form.cargo.id_for_label }}" class="form-label">{{ form.cargo.label }} *</label>
+                                {{ form.cargo }}
+                                {% if form.cargo.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.cargo.errors %}
+                                            <small>{{ error }}</small><br>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="salario" class="form-label">Salário *</label>
-                                <input type="number" 
-                                       class="form-control" 
-                                       id="salario" 
-                                       name="salario" 
-                                       value="{% if object %}{{ object.salario }}{% endif %}"
-                                       step="0.01"
-                                       min="0"
-                                       required>
+                                <label for="{{ form.salario.id_for_label }}" class="form-label">{{ form.salario.label }} *</label>
+                                {{ form.salario }}
+                                {% if form.salario.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.salario.errors %}
+                                            <small>{{ error }}</small><br>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="data_admissao" class="form-label">Data de Admissão *</label>
-                                <input type="date" 
-                                       class="form-control" 
-                                       id="data_admissao" 
-                                       name="data_admissao" 
-                                       value="{% if object %}{{ object.data_admissao|date:'Y-m-d' }}{% endif %}"
-                                       required>
+                                <label for="{{ form.data_admissao.id_for_label }}" class="form-label">{{ form.data_admissao.label }} *</label>
+                                {{ form.data_admissao }}
+                                {% if form.data_admissao.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.data_admissao.errors %}
+                                            <small>{{ error }}</small><br>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

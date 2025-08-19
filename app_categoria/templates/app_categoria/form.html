@@ -29,22 +29,34 @@
                 <form method="post">
                     {% csrf_token %}
                     
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    
                     <div class="mb-3">
-                        <label for="nome" class="form-label">Nome *</label>
-                        <input type="text" 
-                               class="form-control" 
-                               id="nome" 
-                               name="nome" 
-                               value="{% if object %}{{ object.nome }}{% endif %}"
-                               required>
+                        <label for="{{ form.nome.id_for_label }}" class="form-label">{{ form.nome.label }} *</label>
+                        {{ form.nome }}
+                        {% if form.nome.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.nome.errors %}
+                                    <small>{{ error }}</small><br>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
                     
                     <div class="mb-3">
-                        <label for="descricao" class="form-label">Descrição</label>
-                        <textarea class="form-control" 
-                                  id="descricao" 
-                                  name="descricao" 
-                                  rows="3">{% if object %}{{ object.descricao }}{% endif %}</textarea>
+                        <label for="{{ form.descricao.id_for_label }}" class="form-label">{{ form.descricao.label }}</label>
+                        {{ form.descricao }}
+                        {% if form.descricao.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.descricao.errors %}
+                                    <small>{{ error }}</small><br>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
