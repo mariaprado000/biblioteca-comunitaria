@@ -12,13 +12,11 @@ Sistema completo de gerenciamento de biblioteca com:
 - Sistema de permissões baseado em grupos
 - Interface responsiva e moderna
 
-## 👥 Integrantes do Grupo
+## Integrantes do Grupo
 
 - **Maria de Fátima Prado Neves** 
 - **Raifran Santos Guimarães** 
 - **Eduarda Teixeira Santos Fraga**
-
-## 🚀 Funcionalidades
 
 ### Para Funcionários:
 - ✅ Gerenciar livros (CRUD completo)
