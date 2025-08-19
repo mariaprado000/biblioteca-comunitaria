@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from datetime import datetime, timedelta
@@ -8,12 +8,10 @@ from .models import Emprestimo
 from app_livro.models import Livro
 from app_leitor.models import Leitor
 from app_funcionario.models import Funcionario
-
-def is_funcionario(user):
-    return user.is_staff or user.is_superuser
+from biblioteca.decorators import funcionario_or_leitor_required, funcionario_required
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_or_leitor_required
 def emprestimo_list(request):
     search = request.GET.get('search', '')
     status = request.GET.get('status', '')
@@ -49,7 +47,7 @@ def emprestimo_list(request):
     return render(request, 'app_emprestimo/list.html', context)
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_required
 def emprestimo_create(request):
     if request.method == 'POST':
         try:
@@ -104,7 +102,7 @@ def emprestimo_create(request):
     return render(request, 'app_emprestimo/form.html', context)
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_required
 def emprestimo_devolver(request, pk):
     emprestimo = get_object_or_404(Emprestimo, pk=pk)
     
@@ -145,7 +143,7 @@ def emprestimo_devolver(request, pk):
     return render(request, 'app_emprestimo/devolver.html', context)
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_required
 def emprestimo_renovar(request, pk):
     emprestimo = get_object_or_404(Emprestimo, pk=pk)
     

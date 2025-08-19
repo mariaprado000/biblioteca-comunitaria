@@ -1,43 +1,178 @@
 {% extends 'base_auth.html' %}
-{% load bootstrap4 %}
 
 {% block title %}Registro - Biblioteca Comunitária{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow">
-                <div class="card-header text-center bg-primary text-white">
-                    <h4><i class="fas fa-user-plus"></i> Registro</h4>
-                </div>
-                <div class="card-body">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="close" data-dismiss="alert">
-                                    <span>&times;</span>
-                                </button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+<h4 class="mb-1">Cadastro de Leitor 📚</h4>
+<p class="mb-6">Preencha os dados para se cadastrar como leitor da biblioteca</p>
 
-                    <form method="post">
-                        {% csrf_token %}
-                        {% bootstrap_form form %}
-                        <button type="submit" class="btn btn-primary btn-block">
-                            <i class="fas fa-user-plus"></i> Registrar
-                        </button>
-                    </form>
-                    
-                    <hr>
-                    <div class="text-center">
-                        <p>Já tem uma conta? <a href="{% url 'app_user:login' %}">Faça login</a></p>
-                    </div>
-                </div>
-            </div>
-        </div>
+<form id="formAuthentication" class="mb-6" method="post">
+  {% csrf_token %}
+  
+  <!-- Dados de Login -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h6 class="text-muted">Dados de Login</h6>
     </div>
-</div>
+  </div>
+  
+  <div class="mb-6">
+    <label for="id_username" class="form-label">Nome de Usuário *</label>
+    {{ form.username }}
+    {% if form.username.errors %}
+      <div class="text-danger">{{ form.username.errors.0 }}</div>
+    {% endif %}
+  </div>
+  
+  <div class="mb-6 form-password-toggle">
+    <label class="form-label" for="id_password1">Senha *</label>
+    <div class="input-group input-group-merge">
+      {{ form.password1 }}
+      <span class="input-group-text cursor-pointer">
+        <i class="bx bx-hide"></i>
+      </span>
+    </div>
+    {% if form.password1.errors %}
+      <div class="text-danger">{{ form.password1.errors.0 }}</div>
+    {% endif %}
+  </div>
+  
+  <div class="mb-6 form-password-toggle">
+    <label class="form-label" for="id_password2">Confirmar Senha *</label>
+    <div class="input-group input-group-merge">
+      {{ form.password2 }}
+      <span class="input-group-text cursor-pointer">
+        <i class="bx bx-hide"></i>
+      </span>
+    </div>
+    {% if form.password2.errors %}
+      <div class="text-danger">{{ form.password2.errors.0 }}</div>
+    {% endif %}
+  </div>
+  
+  <!-- Dados Pessoais -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <h6 class="text-muted">Dados Pessoais</h6>
+    </div>
+  </div>
+  
+  <div class="row">
+    <div class="col-md-6 mb-6">
+      <label for="id_first_name" class="form-label">Nome *</label>
+      {{ form.first_name }}
+      {% if form.first_name.errors %}
+        <div class="text-danger">{{ form.first_name.errors.0 }}</div>
+      {% endif %}
+    </div>
+    <div class="col-md-6 mb-6">
+      <label for="id_last_name" class="form-label">Sobrenome *</label>
+      {{ form.last_name }}
+      {% if form.last_name.errors %}
+        <div class="text-danger">{{ form.last_name.errors.0 }}</div>
+      {% endif %}
+    </div>
+  </div>
+  
+  <div class="mb-6">
+    <label for="id_cpf" class="form-label">CPF *</label>
+    {{ form.cpf }}
+    {% if form.cpf.errors %}
+      <div class="text-danger">{{ form.cpf.errors.0 }}</div>
+    {% endif %}
+  </div>
+  
+  <div class="row">
+    <div class="col-md-6 mb-6">
+      <label for="id_email" class="form-label">E-mail</label>
+      {{ form.email }}
+      {% if form.email.errors %}
+        <div class="text-danger">{{ form.email.errors.0 }}</div>
+      {% endif %}
+    </div>
+    <div class="col-md-6 mb-6">
+      <label for="id_telefone" class="form-label">Telefone</label>
+      {{ form.telefone }}
+      {% if form.telefone.errors %}
+        <div class="text-danger">{{ form.telefone.errors.0 }}</div>
+      {% endif %}
+    </div>
+  </div>
+  
+  <div class="row">
+    <div class="col-md-6 mb-6">
+      <label for="id_data_nascimento" class="form-label">Data de Nascimento *</label>
+      {{ form.data_nascimento }}
+      {% if form.data_nascimento.errors %}
+        <div class="text-danger">{{ form.data_nascimento.errors.0 }}</div>
+      {% endif %}
+    </div>
+    <div class="col-md-6 mb-6">
+      <label for="id_endereco" class="form-label">Endereço</label>
+      {{ form.endereco }}
+      {% if form.endereco.errors %}
+        <div class="text-danger">{{ form.endereco.errors.0 }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <button class="btn btn-primary w-100">
+    <i class="bx bx-user-plus me-2"></i>Cadastrar como Leitor
+  </button>
+</form>
+
+<p class="text-center">
+  <span>Já tem uma conta?</span>
+  <a href="{% url 'app_user:login' %}">
+    <span>Entrar</span>
+  </a>
+</p>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Password toggle para ambos os campos
+    const passwordToggles = document.querySelectorAll('.form-password-toggle .input-group-text');
+    
+    passwordToggles.forEach(function(toggle) {
+        toggle.addEventListener('click', function () {
+            const input = this.previousElementSibling;
+            const icon = this.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bx-hide');
+                icon.classList.add('bx-show');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bx-show');
+                icon.classList.add('bx-hide');
+            }
+        });
+    });
+    
+    // Formatação de CPF
+    const cpfField = document.getElementById('id_cpf');
+    if (cpfField) {
+        cpfField.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+                e.target.value = value;
+            }
+        });
+    }
+    
+    // Formatação de telefone
+    const telefoneField = document.getElementById('id_telefone');
+    if (telefoneField) {
+        telefoneField.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+                e.target.value = value;
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

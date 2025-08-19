@@ -1,68 +1,74 @@
-<div class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
-    <div class="position-sticky pt-3">
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link active" href="{% url 'app_dashboard:home' %}">
-                    <i class="fas fa-home me-2"></i>
-                    Dashboard
-                </a>
-            </li>
-            
-            <li class="nav-item">
-                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                    <span>Biblioteca</span>
-                </h6>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'app_livro:listar' %}">
-                    <i class="fas fa-book me-2"></i>
-                    Livros
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'app_categoria:listar' %}">
-                    <i class="fas fa-tags me-2"></i>
-                    Categorias
-                </a>
-            </li>
-            
-            {% if user.is_staff %}
-                <li class="nav-item">
-                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                        <span>Gestão</span>
-                    </h6>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'app_leitor:listar' %}">
-                        <i class="fas fa-users me-2"></i>
-                        Leitores
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'app_funcionario:listar' %}">
-                        <i class="fas fa-user-tie me-2"></i>
-                        Funcionários
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'app_emprestimo:listar' %}">
-                        <i class="fas fa-handshake me-2"></i>
-                        Empréstimos
-                    </a>
-                </li>
-            {% endif %}
-            
-            <li class="nav-item">
-                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                    <span>Relatórios</span>
-                </h6>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">
-                    <i class="fas fa-chart-bar me-2"></i>
-                    Estatísticas
-                </a>
-            </li>
-        </ul>
-    </div>
-</div>
+<!-- Menu -->
+<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+  <div class="app-brand demo">
+    <a href="{% url 'app_dashboard:home' %}" class="app-brand-link">
+      <span class="app-brand-logo demo">
+        <span class="text-primary">
+          <i class="bx bx-book-open" style="font-size: 2rem;"></i>
+        </span>
+      </span>
+      <span class="app-brand-text demo menu-text fw-bold ms-2">Biblioteca</span>
+    </a>
+
+    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
+      <i class="bx bx-chevron-left bx-sm d-flex align-items-center justify-content-center"></i>
+    </a>
+  </div>
+
+  <div class="menu-inner-shadow"></div>
+
+  <ul class="menu-inner py-1">
+    <!-- Dashboard -->
+    <li class="menu-item {% if request.resolver_match.namespace == 'app_dashboard' %}active{% endif %}">
+      <a href="{% url 'app_dashboard:home' %}" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-home-circle"></i>
+        <div class="text-truncate" data-i18n="Analytics">Dashboard</div>
+      </a>
+    </li>
+
+    <!-- Biblioteca Section -->
+    <li class="menu-header small text-uppercase"><span class="menu-header-text">Biblioteca</span></li>
+    
+    <li class="menu-item {% if request.resolver_match.namespace == 'app_livro' %}active{% endif %}">
+      <a href="{% url 'app_livro:listar' %}" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-book"></i>
+        <div class="text-truncate">Livros</div>
+      </a>
+    </li>
+
+    <li class="menu-item {% if request.resolver_match.namespace == 'app_categoria' %}active{% endif %}">
+      <a href="{% url 'app_categoria:listar' %}" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-collection"></i>
+        <div class="text-truncate">Categorias</div>
+      </a>
+    </li>
+
+    <!-- Gestão Section (apenas para funcionários) -->
+    {% if user_is_funcionario %}
+    <li class="menu-header small text-uppercase"><span class="menu-header-text">Gestão</span></li>
+    
+    <li class="menu-item {% if request.resolver_match.namespace == 'app_leitor' %}active{% endif %}">
+      <a href="{% url 'app_leitor:listar' %}" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-group"></i>
+        <div class="text-truncate">Leitores</div>
+      </a>
+    </li>
+
+    <li class="menu-item {% if request.resolver_match.namespace == 'app_funcionario' %}active{% endif %}">
+      <a href="{% url 'app_funcionario:listar' %}" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-user-check"></i>
+        <div class="text-truncate">Funcionários</div>
+      </a>
+    </li>
+
+    <li class="menu-item {% if request.resolver_match.namespace == 'app_emprestimo' %}active{% endif %}">
+      <a href="{% url 'app_emprestimo:listar' %}" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-transfer"></i>
+        <div class="text-truncate">Empréstimos</div>
+      </a>
+    </li>
+    {% endif %}
+
+  </ul>
+</aside>
+<!-- / Menu -->

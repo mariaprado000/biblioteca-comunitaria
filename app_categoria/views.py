@@ -1,13 +1,11 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Categoria
-
-def is_funcionario(user):
-    return user.is_staff or user.is_superuser
+from biblioteca.decorators import funcionario_or_leitor_required, funcionario_required
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_or_leitor_required
 def categoria_list(request):
     search = request.GET.get('search', '')
     if search:
@@ -22,7 +20,7 @@ def categoria_list(request):
     return render(request, 'app_categoria/list.html', context)
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_required
 def categoria_create(request):
     if request.method == 'POST':
         nome = request.POST.get('nome')
@@ -33,7 +31,7 @@ def categoria_create(request):
     return render(request, 'app_categoria/form.html')
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_required
 def categoria_update(request, pk):
     categoria = get_object_or_404(Categoria, pk=pk)
     if request.method == 'POST':
@@ -45,7 +43,7 @@ def categoria_update(request, pk):
     return render(request, 'app_categoria/form.html', {'object': categoria})
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_required
 def categoria_delete(request, pk):
     categoria = get_object_or_404(Categoria, pk=pk)
     if request.method == 'POST':

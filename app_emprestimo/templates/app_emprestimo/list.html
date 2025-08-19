@@ -3,117 +3,175 @@
 {% block title %}Empréstimos - Biblioteca Comunitária{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Empréstimos</h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <a href="{% url 'app_emprestimo:criar' %}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Novo Empréstimo
-        </a>
-    </div>
-</div>
+<!-- Header -->
+<h4 class="py-3 mb-4"><span class="text-muted fw-light">Gestão /</span> Empréstimos</h4>
 
-{% if messages %}
-    {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<!-- Empréstimos List Table -->
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Lista de Empréstimos</h5>
+    {% if user_is_funcionario %}
+      <a href="{% url 'app_emprestimo:criar' %}" class="btn btn-primary">
+        <i class="bx bx-plus me-1"></i>Novo Empréstimo
+      </a>
+    {% endif %}
+  </div>
+  
+  <!-- Filters -->
+  <div class="card-body">
+    <form method="get" class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bx bx-search"></i></span>
+          <input
+            type="text"
+            name="search"
+            class="form-control"
+            placeholder="Buscar por livro ou leitor..."
+            value="{{ search }}" />
         </div>
-    {% endfor %}
-{% endif %}
-
-<div class="row mb-3">
-    <div class="col-md-8">
-        <form method="get" class="row g-3">
-            <div class="col-md-5">
-                <input type="text" name="search" class="form-control" placeholder="Buscar por livro ou leitor..." value="{{ search }}">
-            </div>
-            <div class="col-md-4">
-                <select name="status" class="form-select">
-                    <option value="">Todos os status</option>
-                    <option value="ativo" {% if status_filtro == 'ativo' %}selected{% endif %}>Ativos</option>
-                    <option value="atrasado" {% if status_filtro == 'atrasado' %}selected{% endif %}>Atrasados</option>
-                    <option value="devolvido" {% if status_filtro == 'devolvido' %}selected{% endif %}>Devolvidos</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-outline-secondary w-100">
-                    <i class="fas fa-search"></i> Filtrar
-                </button>
-            </div>
-        </form>
-    </div>
-    <div class="col-md-4">
-        {% if search or status_filtro %}
+      </div>
+      <div class="col-md-3">
+        <select name="status" class="form-select">
+          <option value="">Todos os status</option>
+          <option value="ativo" {% if status_filtro == 'ativo' %}selected{% endif %}>Ativos</option>
+          <option value="atrasado" {% if status_filtro == 'atrasado' %}selected{% endif %}>Atrasados</option>
+          <option value="devolvido" {% if status_filtro == 'devolvido' %}selected{% endif %}>Devolvidos</option>
+        </select>
+      </div>
+      <div class="col-md-5">
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="bx bx-search me-1"></i>Filtrar
+          </button>
+          {% if search or status_filtro %}
             <a href="{% url 'app_emprestimo:listar' %}" class="btn btn-outline-secondary">
-                <i class="fas fa-times"></i> Limpar filtros
+              <i class="bx bx-x me-1"></i>Limpar
             </a>
-        {% endif %}
-    </div>
-</div>
+          {% endif %}
+        </div>
+      </div>
+    </form>
+  </div>
 
-<div class="table-responsive">
-    <table class="table table-striped table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>Livro</th>
-                <th>Leitor</th>
-                <th>Empréstimo</th>
-                <th>Prev. Devolução</th>
-                <th>Status</th>
-                <th>Multa</th>
-                <th width="250">Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for emprestimo in emprestimos %}
-                <tr>
-                    <td>{{ emprestimo.livro.titulo }}</td>
-                    <td>{{ emprestimo.leitor.usuario.first_name }} {{ emprestimo.leitor.usuario.last_name }}</td>
-                    <td>{{ emprestimo.data_emprestimo|date:"d/m/Y" }}</td>
-                    <td>{{ emprestimo.data_devolucao_prevista|date:"d/m/Y" }}</td>
-                    <td>
-                        {% if emprestimo.data_devolucao %}
-                            <span class="badge bg-success">Devolvido</span>
-                        {% elif emprestimo.esta_atrasado %}
-                            <span class="badge bg-danger">Atrasado</span>
-                        {% else %}
-                            <span class="badge bg-warning">Ativo</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if emprestimo.multa > 0 %}
-                            <span class="text-danger">R$ {{ emprestimo.multa|floatformat:2 }}</span>
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if not emprestimo.data_devolucao %}
-                            <a href="{% url 'app_emprestimo:devolver' emprestimo.pk %}" class="btn btn-sm btn-success me-1">
-                                <i class="fas fa-check"></i> Devolver
-                            </a>
-                            {% if emprestimo.pode_renovar %}
-                                <a href="{% url 'app_emprestimo:renovar' emprestimo.pk %}" class="btn btn-sm btn-info">
-                                    <i class="fas fa-redo"></i> Renovar
-                                </a>
-                            {% endif %}
-                        {% else %}
-                            <span class="text-muted">Devolvido em {{ emprestimo.data_devolucao|date:"d/m/Y" }}</span>
-                        {% endif %}
-                    </td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="7" class="text-center text-muted">
-                        {% if search or status_filtro %}
-                            Nenhum empréstimo encontrado com os filtros aplicados
-                        {% else %}
-                            Nenhum empréstimo cadastrado
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
+  <!-- Table -->
+  <div class="table-responsive text-nowrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Empréstimo</th>
+          <th>Leitor</th>
+          <th>Datas</th>
+          <th>Status</th>
+          {% if user_is_funcionario %}
+            <th>Ações</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody class="table-border-bottom-0">
+        {% for emprestimo in emprestimos %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="avatar avatar-sm me-3">
+                  <span class="avatar-initial rounded bg-label-primary">
+                    <i class="bx bx-book"></i>
+                  </span>
+                </div>
+                <div>
+                  <strong>{{ emprestimo.livro.titulo }}</strong>
+                  {% if emprestimo.livro.autor %}
+                    <br><small class="text-muted">por {{ emprestimo.livro.autor }}</small>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="avatar avatar-sm me-3">
+                  <div class="avatar-initials w-px-32 h-px-32" style="font-size: 0.75rem;">
+                    {{ emprestimo.leitor.usuario.first_name.0|default:emprestimo.leitor.usuario.username.0 }}{{ emprestimo.leitor.usuario.last_name.0|default:emprestimo.leitor.usuario.username.1|default:"" }}
+                  </div>
+                </div>
+                <div>
+                  <strong>{{ emprestimo.leitor.usuario.first_name }} {{ emprestimo.leitor.usuario.last_name }}</strong>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div>
+                <small class="text-muted">Empréstimo:</small> {{ emprestimo.data_emprestimo|date:"d/m/Y" }}
+              </div>
+              <div>
+                <small class="text-muted">Previsto:</small> {{ emprestimo.data_devolucao_prevista|date:"d/m/Y" }}
+              </div>
+              {% if emprestimo.data_devolucao %}
+                <div>
+                  <small class="text-success">Devolvido:</small> {{ emprestimo.data_devolucao|date:"d/m/Y" }}
+                </div>
+              {% endif %}
+            </td>
+            <td>
+              <div>
+                {% if emprestimo.data_devolucao %}
+                  <span class="badge bg-label-success">Devolvido</span>
+                {% elif emprestimo.esta_atrasado %}
+                  <span class="badge bg-label-danger">Atrasado</span>
+                {% else %}
+                  <span class="badge bg-label-warning">Ativo</span>
+                {% endif %}
+              </div>
+              {% if emprestimo.multa > 0 %}
+                <div class="mt-1">
+                  <small class="text-danger">
+                    <i class="bx bx-error-circle me-1"></i>Multa: R$ {{ emprestimo.multa|floatformat:2 }}
+                  </small>
+                </div>
+              {% endif %}
+            </td>
+            {% if user_is_funcionario %}
+              <td>
+                {% if not emprestimo.data_devolucao %}
+                  <div class="d-flex gap-1">
+                    <a href="{% url 'app_emprestimo:devolver' emprestimo.pk %}" 
+                       class="btn btn-sm btn-success" 
+                       title="Devolver">
+                      <i class="bx bx-check"></i>
+                    </a>
+                    {% if emprestimo.pode_renovar %}
+                      <a href="{% url 'app_emprestimo:renovar' emprestimo.pk %}" 
+                         class="btn btn-sm btn-info" 
+                         title="Renovar">
+                        <i class="bx bx-refresh"></i>
+                      </a>
+                    {% endif %}
+                  </div>
+                {% else %}
+                  <span class="text-muted">
+                    <i class="bx bx-check-circle me-1"></i>Finalizado
+                  </span>
+                {% endif %}
+              </td>
+            {% endif %}
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="{% if user_is_funcionario %}5{% else %}4{% endif %}" class="text-center py-4">
+              <div class="d-flex flex-column align-items-center">
+                <i class="bx bx-transfer bx-lg text-muted mb-2"></i>
+                <span class="text-muted">
+                  {% if search or status_filtro %}
+                    Nenhum empréstimo encontrado com os filtros aplicados
+                  {% else %}
+                    Nenhum empréstimo cadastrado
+                  {% endif %}
+                </span>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
     </table>
+  </div>
 </div>
 {% endblock %}

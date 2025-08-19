@@ -3,87 +3,135 @@
 {% block title %}Leitores - Biblioteca Comunitária{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Leitores</h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <a href="{% url 'app_leitor:criar' %}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Novo Leitor
-        </a>
-    </div>
-</div>
+<!-- Header -->
+<h4 class="py-3 mb-4"><span class="text-muted fw-light">Gestão /</span> Leitores</h4>
 
-{% if messages %}
-    {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<!-- Leitores List Table -->
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Lista de Leitores</h5>
+    {% if user_is_funcionario %}
+      <a href="{% url 'app_leitor:criar' %}" class="btn btn-primary">
+        <i class="bx bx-plus me-1"></i>Novo Leitor
+      </a>
+    {% endif %}
+  </div>
+  
+  <!-- Filters -->
+  <div class="card-body">
+    <form method="get" class="row g-3 mb-4">
+      <div class="col-md-6">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bx bx-search"></i></span>
+          <input
+            type="text"
+            name="search"
+            class="form-control"
+            placeholder="Buscar por nome ou CPF..."
+            value="{{ search }}" />
         </div>
-    {% endfor %}
-{% endif %}
+      </div>
+      <div class="col-md-6">
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="bx bx-search me-1"></i>Buscar
+          </button>
+          {% if search %}
+            <a href="{% url 'app_leitor:listar' %}" class="btn btn-outline-secondary">
+              <i class="bx bx-x me-1"></i>Limpar
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </form>
+  </div>
 
-<div class="row mb-3">
-    <div class="col-md-6">
-        <form method="get" class="d-flex">
-            <input type="text" name="search" class="form-control me-2" placeholder="Buscar por nome ou CPF..." value="{{ search }}">
-            <button type="submit" class="btn btn-outline-secondary">
-                <i class="fas fa-search"></i>
-            </button>
-            {% if search %}
-                <a href="{% url 'app_leitor:listar' %}" class="btn btn-outline-secondary ms-2">
-                    <i class="fas fa-times"></i>
-                </a>
+  <!-- Table -->
+  <div class="table-responsive text-nowrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Leitor</th>
+          <th>CPF</th>
+          <th>Contato</th>
+          <th>Status</th>
+          {% if user_is_funcionario %}
+            <th>Ações</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody class="table-border-bottom-0">
+        {% for leitor in leitores %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="avatar avatar-sm me-3">
+                  <div class="avatar-initials w-px-32 h-px-32" style="font-size: 0.75rem;">
+                    {{ leitor.usuario.first_name.0|default:leitor.usuario.username.0 }}{{ leitor.usuario.last_name.0|default:leitor.usuario.username.1|default:"" }}
+                  </div>
+                </div>
+                <div>
+                  <strong>{{ leitor.usuario.first_name }} {{ leitor.usuario.last_name }}</strong>
+                  <br><small class="text-muted">@{{ leitor.usuario.username }}</small>
+                </div>
+              </div>
+            </td>
+            <td><code>{{ leitor.cpf }}</code></td>
+            <td>
+              <div>
+                {% if leitor.telefone %}
+                  <i class="bx bx-phone me-1"></i>{{ leitor.telefone }}
+                {% endif %}
+              </div>
+              {% if leitor.usuario.email %}
+                <small class="text-muted">
+                  <i class="bx bx-envelope me-1"></i>{{ leitor.usuario.email }}
+                </small>
+              {% endif %}
+            </td>
+            <td>
+              {% if leitor.ativo %}
+                <span class="badge bg-label-success">Ativo</span>
+              {% else %}
+                <span class="badge bg-label-danger">Inativo</span>
+              {% endif %}
+            </td>
+            {% if user_is_funcionario %}
+              <td>
+                <div class="dropdown">
+                  <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                    <i class="bx bx-dots-vertical-rounded"></i>
+                  </button>
+                  <div class="dropdown-menu">
+                    <a class="dropdown-item" href="{% url 'app_leitor:editar' leitor.pk %}">
+                      <i class="bx bx-edit-alt me-1"></i> Editar
+                    </a>
+                    <a class="dropdown-item" href="{% url 'app_leitor:deletar' leitor.pk %}">
+                      <i class="bx bx-trash me-1"></i> Deletar
+                    </a>
+                  </div>
+                </div>
+              </td>
             {% endif %}
-        </form>
-    </div>
-</div>
-
-<div class="table-responsive">
-    <table class="table table-striped table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>Nome</th>
-                <th>CPF</th>
-                <th>Telefone</th>
-                <th>Email</th>
-                <th>Status</th>
-                <th width="200">Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for leitor in leitores %}
-                <tr>
-                    <td>{{ leitor.usuario.first_name }} {{ leitor.usuario.last_name }}</td>
-                    <td>{{ leitor.cpf }}</td>
-                    <td>{{ leitor.telefone }}</td>
-                    <td>{{ leitor.usuario.email|default:"-" }}</td>
-                    <td>
-                        {% if leitor.ativo %}
-                            <span class="badge bg-success">Ativo</span>
-                        {% else %}
-                            <span class="badge bg-danger">Inativo</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <a href="{% url 'app_leitor:editar' leitor.pk %}" class="btn btn-sm btn-warning me-1">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <a href="{% url 'app_leitor:deletar' leitor.pk %}" class="btn btn-sm btn-danger">
-                            <i class="fas fa-user-slash"></i>
-                        </a>
-                    </td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="6" class="text-center text-muted">
-                        {% if search %}
-                            Nenhum leitor encontrado para "{{ search }}"
-                        {% else %}
-                            Nenhum leitor cadastrado
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="{% if user_is_funcionario %}5{% else %}4{% endif %}" class="text-center py-4">
+              <div class="d-flex flex-column align-items-center">
+                <i class="bx bx-group bx-lg text-muted mb-2"></i>
+                <span class="text-muted">
+                  {% if search %}
+                    Nenhum leitor encontrado com os filtros aplicados
+                  {% else %}
+                    Nenhum leitor cadastrado
+                  {% endif %}
+                </span>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
     </table>
+  </div>
 </div>
 {% endblock %}

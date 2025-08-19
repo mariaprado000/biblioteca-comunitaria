@@ -1,16 +1,14 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User, Group
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from .models import Funcionario
-
-def is_funcionario(user):
-    return user.is_staff or user.is_superuser
+from biblioteca.decorators import funcionario_required
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_required
 def funcionario_list(request):
     search = request.GET.get('search', '')
     
@@ -34,7 +32,7 @@ def funcionario_list(request):
     return render(request, 'app_funcionario/list.html', context)
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_required
 def funcionario_create(request):
     if request.method == 'POST':
         try:
@@ -45,9 +43,12 @@ def funcionario_create(request):
                     email=request.POST.get('email', ''),
                     first_name=request.POST.get('first_name'),
                     last_name=request.POST.get('last_name'),
-                    password=request.POST.get('password'),
-                    is_staff=True  # Funcionários são staff
+                    password=request.POST.get('password')
                 )
+                
+                # Adicionar ao grupo Funcionarios
+                funcionarios_group, created = Group.objects.get_or_create(name='Funcionarios')
+                user.groups.add(funcionarios_group)
                 
                 # Criar funcionário
                 funcionario = Funcionario(
@@ -69,7 +70,7 @@ def funcionario_create(request):
     return render(request, 'app_funcionario/form.html')
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_required
 def funcionario_update(request, pk):
     funcionario = get_object_or_404(Funcionario, pk=pk)
     
@@ -109,7 +110,7 @@ def funcionario_update(request, pk):
     return render(request, 'app_funcionario/form.html', {'object': funcionario})
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_required
 def funcionario_delete(request, pk):
     funcionario = get_object_or_404(Funcionario, pk=pk)
     if request.method == 'POST':

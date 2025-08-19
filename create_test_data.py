@@ -81,7 +81,7 @@ def create_test_data():
             "cpf": "12345678901", "telefone": "(11) 99999-9999", "endereco": "Rua A, 123", "data_nascimento": date(1990, 1, 15)
         },
         {
-            "username": "maria.santos", "email": "maria@email.com", "first_name": "Maria", "last_name": "Santos",
+            "username": "maria.prado", "email": "maria@email.com", "first_name": "Maria", "last_name": "Prado",
             "cpf": "98765432109", "telefone": "(11) 88888-8888", "endereco": "Rua B, 456", "data_nascimento": date(1985, 5, 20)
         },
         {
@@ -122,7 +122,7 @@ def create_test_data():
     print("FUNCIONARIO FUNCIONÁRIO (admin): username=admin, password=admin123")
     print("LEITORES LEITORES:")
     print("   • username=joao.silva, password=123456")
-    print("   • username=maria.santos, password=123456") 
+    print("   • username=maria.prado, password=123456") 
     print("   • username=pedro.oliveira, password=123456")
     print("\nACESSE: Acesse: http://localhost:8000/auth/login/")
 

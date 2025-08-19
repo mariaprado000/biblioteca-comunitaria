@@ -1,16 +1,14 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from .models import Leitor
-
-def is_funcionario(user):
-    return user.is_staff or user.is_superuser
+from biblioteca.decorators import funcionario_required
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_required
 def leitor_list(request):
     search = request.GET.get('search', '')
     
@@ -34,7 +32,7 @@ def leitor_list(request):
     return render(request, 'app_leitor/list.html', context)
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_required
 def leitor_create(request):
     if request.method == 'POST':
         try:
@@ -69,7 +67,7 @@ def leitor_create(request):
     return render(request, 'app_leitor/form.html')
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_required
 def leitor_update(request, pk):
     leitor = get_object_or_404(Leitor, pk=pk)
     
@@ -110,7 +108,7 @@ def leitor_update(request, pk):
     return render(request, 'app_leitor/form.html', {'object': leitor})
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_required
 def leitor_delete(request, pk):
     leitor = get_object_or_404(Leitor, pk=pk)
     if request.method == 'POST':

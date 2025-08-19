@@ -3,30 +3,71 @@
 {% block title %}Login - Biblioteca Comunitária{% endblock %}
 
 {% block content %}
-<h5 class="text-center mb-4">Fazer Login</h5>
+<h4 class="mb-1">Bem-vindo à Biblioteca! 👋</h4>
+<p class="mb-6">Faça login em sua conta para começar</p>
 
-<form method="post">
-    {% csrf_token %}
-    <div class="mb-3">
-        <label for="id_username" class="form-label">Usuário:</label>
-        <input type="text" class="form-control" id="id_username" name="username" required>
+<form id="formAuthentication" class="mb-6" method="post">
+  {% csrf_token %}
+  <div class="mb-6">
+    <label for="id_username" class="form-label">Usuário</label>
+    <input
+      type="text"
+      class="form-control"
+      id="id_username"
+      name="username"
+      placeholder="Digite seu usuário"
+      autofocus
+      required />
+  </div>
+  
+  <div class="mb-6 form-password-toggle">
+    <label class="form-label" for="id_password">Senha</label>
+    <div class="input-group input-group-merge">
+      <input
+        type="password"
+        id="id_password"
+        class="form-control"
+        name="password"
+        placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+        aria-describedby="password"
+        required />
+      <span class="input-group-text cursor-pointer">
+        <i class="bx bx-hide"></i>
+      </span>
     </div>
-    
-    <div class="mb-3">
-        <label for="id_password" class="form-label">Senha:</label>
-        <input type="password" class="form-control" id="id_password" name="password" required>
-    </div>
-    
-    <div class="d-grid">
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-sign-in-alt me-1"></i>Entrar
-        </button>
-    </div>
+  </div>
+  
+  <div class="mb-6">
+    <button class="btn btn-primary w-100" type="submit">
+      <i class="bx bx-log-in me-2"></i>Entrar
+    </button>
+  </div>
 </form>
 
-<div class="text-center mt-3">
-    <p class="small">
-        Não tem uma conta? <a href="{% url 'app_user:registro' %}">Registre-se aqui</a>
-    </p>
-</div>
+<p class="text-center">
+  <span>Novo na plataforma?</span>
+  <a href="{% url 'app_user:registro' %}">
+    <span>Criar uma conta</span>
+  </a>
+</p>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const passwordToggle = document.querySelector('.form-password-toggle .input-group-text');
+    const passwordInput = document.querySelector('#id_password');
+    const passwordIcon = passwordToggle.querySelector('i');
+    
+    passwordToggle.addEventListener('click', function () {
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            passwordIcon.classList.remove('bx-hide');
+            passwordIcon.classList.add('bx-show');
+        } else {
+            passwordInput.type = 'password';
+            passwordIcon.classList.remove('bx-show');
+            passwordIcon.classList.add('bx-hide');
+        }
+    });
+});
+</script>
 {% endblock %}

@@ -1,89 +1,360 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Dashboard - Biblioteca Comunitária{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Dashboard</h1>
+<!-- Header -->
+<div class="row mb-6">
+  <div class="col-12">
+    <h4 class="fw-bold py-3 mb-4">
+      <span class="text-muted fw-light">Dashboard /</span> Analytics
+    </h4>
+  </div>
 </div>
 
-<div class="row">
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5>Livros</h5>
-                        <h3 id="total-livros">{{ total_livros }}</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-book fa-2x"></i>
-                    </div>
-                </div>
+<!-- Statistics Cards -->
+<div class="row g-6 mb-6">
+  {% if user_is_funcionario %}
+    <!-- Cartões para Funcionários -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between">
+            <div class="content-left">
+              <span class="text-heading">Total de Livros</span>
+              <div class="d-flex align-items-center my-1">
+                <h4 class="mb-0 me-2">{{ total_livros }}</h4>
+              </div>
+              <small class="text-success">Cadastrados no sistema</small>
             </div>
+            <div class="avatar">
+              <span class="avatar-initial rounded bg-label-primary">
+                <i class="bx bx-book bx-lg"></i>
+              </span>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
     
-    <div class="col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5>Leitores</h5>
-                        <h3 id="total-leitores">{{ total_leitores }}</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-users fa-2x"></i>
-                    </div>
-                </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between">
+            <div class="content-left">
+              <span class="text-heading">Leitores Ativos</span>
+              <div class="d-flex align-items-center my-1">
+                <h4 class="mb-0 me-2">{{ total_leitores }}</h4>
+              </div>
+              <small class="text-success">Cadastrados no sistema</small>
             </div>
+            <div class="avatar">
+              <span class="avatar-initial rounded bg-label-success">
+                <i class="bx bx-group bx-lg"></i>
+              </span>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
     
-    <div class="col-md-3">
-        <div class="card bg-warning text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5>Empréstimos</h5>
-                        <h3 id="total-emprestimos">{{ emprestimos_ativos }}</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-handshake fa-2x"></i>
-                    </div>
-                </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between">
+            <div class="content-left">
+              <span class="text-heading">Empréstimos Ativos</span>
+              <div class="d-flex align-items-center my-1">
+                <h4 class="mb-0 me-2">{{ emprestimos_ativos }}</h4>
+              </div>
+              <small class="text-warning">Em circulação</small>
             </div>
+            <div class="avatar">
+              <span class="avatar-initial rounded bg-label-warning">
+                <i class="bx bx-transfer bx-lg"></i>
+              </span>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
     
-    <div class="col-md-3">
-        <div class="card bg-danger text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5>Atrasados</h5>
-                        <h3 id="total-atrasados">{{ emprestimos_atrasados }}</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-exclamation-triangle fa-2x"></i>
-                    </div>
-                </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between">
+            <div class="content-left">
+              <span class="text-heading">Empréstimos Atrasados</span>
+              <div class="d-flex align-items-center my-1">
+                <h4 class="mb-0 me-2">{{ emprestimos_atrasados }}</h4>
+              </div>
+              <small class="text-danger">Precisam ser devolvidos</small>
             </div>
+            <div class="avatar">
+              <span class="avatar-initial rounded bg-label-danger">
+                <i class="bx bx-error-circle bx-lg"></i>
+              </span>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
+  {% else %}
+    <!-- Cartões para Leitores -->
+    <div class="col-sm-6 col-xl-4">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between">
+            <div class="content-left">
+              <span class="text-heading">Livros Disponíveis</span>
+              <div class="d-flex align-items-center my-1">
+                <h4 class="mb-0 me-2">{{ total_livros }}</h4>
+              </div>
+              <small class="text-success">Para empréstimo</small>
+            </div>
+            <div class="avatar">
+              <span class="avatar-initial rounded bg-label-primary">
+                <i class="bx bx-book bx-lg"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-sm-6 col-xl-4">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between">
+            <div class="content-left">
+              <span class="text-heading">Meus Empréstimos</span>
+              <div class="d-flex align-items-center my-1">
+                <h4 class="mb-0 me-2">{{ meus_emprestimos_ativos|default:0 }}</h4>
+              </div>
+              <small class="text-info">Livros emprestados</small>
+            </div>
+            <div class="avatar">
+              <span class="avatar-initial rounded bg-label-info">
+                <i class="bx bx-transfer bx-lg"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-sm-6 col-xl-4">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between">
+            <div class="content-left">
+              <span class="text-heading">Atrasados</span>
+              <div class="d-flex align-items-center my-1">
+                <h4 class="mb-0 me-2">{{ meus_emprestimos_atrasados|default:0 }}</h4>
+              </div>
+              <small class="text-danger">{% if meus_emprestimos_atrasados > 0 %}Devolver urgente!{% else %}Tudo em dia!{% endif %}</small>
+            </div>
+            <div class="avatar">
+              <span class="avatar-initial rounded {% if meus_emprestimos_atrasados > 0 %}bg-label-danger{% else %}bg-label-success{% endif %}">
+                <i class="bx {% if meus_emprestimos_atrasados > 0 %}bx-error-circle{% else %}bx-check-circle{% endif %} bx-lg"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
 </div>
 
-<div class="row mt-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="fas fa-chart-line me-2"></i>Atividades Recentes</h5>
-            </div>
-            <div class="card-body">
-                <p class="text-muted">Bem-vindo ao Sistema de Biblioteca Comunitária!</p>
-                <p>Utilize o menu lateral para navegar pelas funcionalidades do sistema.</p>
-            </div>
+<!-- Welcome Card -->
+<div class="row mb-6">
+  <div class="col-md-6 col-lg-4 col-xl-4 order-0 mb-6">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between pb-0">
+        <div class="card-title mb-0">
+          <h5 class="m-0 me-2">Bem-vindo!</h5>
+          <small class="text-muted">{{ user.first_name|default:user.username }}</small>
         </div>
+      </div>
+      <div class="card-body">
+        <div class="d-flex justify-content-between flex-sm-row flex-column gap-6">
+          <div class="d-flex flex-sm-column flex-row align-items-start justify-content-between">
+            <div class="card-title">
+              <h5 class="text-nowrap mb-2">Parabéns! 🎉</h5>
+              <span class="badge bg-label-warning rounded-pill">
+                {% if user_is_funcionario %}Funcionário{% elif user_is_leitor %}Leitor{% else %}Usuário{% endif %}
+              </span>
+            </div>
+            <div class="mt-sm-auto">
+              <small class="text-success text-nowrap fw-medium">
+                <i class="bx bx-chevron-up bx-xs"></i>Sistema ativo
+              </small>
+              <h6 class="mb-0">Biblioteca Comunitária</h6>
+            </div>
+          </div>
+          <div class="d-flex align-items-center">
+            <img
+              src="{% static 'sneat/assets/img/illustrations/man-with-laptop.png' %}"
+              height="140"
+              alt="View Badge User"
+              data-app-dark-img="illustrations/man-with-laptop-dark.png"
+              data-app-light-img="illustrations/man-with-laptop-light.png" />
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="col-md-6 col-lg-8 col-xl-8 order-1 mb-6">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="card-title m-0 me-2">Ações Rápidas</h5>
+      </div>
+      <div class="card-body">
+        <ul class="p-0 m-0">
+          <li class="d-flex pb-6">
+            <div class="avatar flex-shrink-0 me-4">
+              <span class="avatar-initial rounded bg-label-primary">
+                <i class="bx bx-book"></i>
+              </span>
+            </div>
+            <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+              <div class="me-2">
+                <h6 class="mb-0">Livros Disponíveis</h6>
+                <small class="text-body d-block">Consultar acervo da biblioteca</small>
+              </div>
+              <div class="user-progress">
+                <a href="{% url 'app_livro:listar' %}" class="btn btn-sm btn-outline-primary">Ver Livros</a>
+              </div>
+            </div>
+          </li>
+          
+          {% if user_is_funcionario %}
+          <li class="d-flex pb-6">
+            <div class="avatar flex-shrink-0 me-4">
+              <span class="avatar-initial rounded bg-label-success">
+                <i class="bx bx-plus"></i>
+              </span>
+            </div>
+            <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+              <div class="me-2">
+                <h6 class="mb-0">Novo Empréstimo</h6>
+                <small class="text-body d-block">Registrar empréstimo de livro</small>
+              </div>
+              <div class="user-progress">
+                <a href="{% url 'app_emprestimo:criar' %}" class="btn btn-sm btn-outline-success">Criar</a>
+              </div>
+            </div>
+          </li>
+          
+          <li class="d-flex pb-6">
+            <div class="avatar flex-shrink-0 me-4">
+              <span class="avatar-initial rounded bg-label-info">
+                <i class="bx bx-group"></i>
+              </span>
+            </div>
+            <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+              <div class="me-2">
+                <h6 class="mb-0">Gerenciar Leitores</h6>
+                <small class="text-body d-block">Cadastrar e gerenciar leitores</small>
+              </div>
+              <div class="user-progress">
+                <a href="{% url 'app_leitor:listar' %}" class="btn btn-sm btn-outline-info">Gerenciar</a>
+              </div>
+            </div>
+          </li>
+          {% else %}
+          <li class="d-flex pb-6">
+            <div class="avatar flex-shrink-0 me-4">
+              <span class="avatar-initial rounded bg-label-info">
+                <i class="bx bx-collection"></i>
+              </span>
+            </div>
+            <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+              <div class="me-2">
+                <h6 class="mb-0">Meus Empréstimos</h6>
+                <small class="text-body d-block">Ver livros que tenho emprestados</small>
+              </div>
+              <div class="user-progress">
+                <a href="{% url 'app_emprestimo:listar' %}" class="btn btn-sm btn-outline-info">Ver Meus</a>
+              </div>
+            </div>
+          </li>
+          {% endif %}
+          
+          <li class="d-flex">
+            <div class="avatar flex-shrink-0 me-4">
+              <span class="avatar-initial rounded bg-label-warning">
+                <i class="bx bx-collection"></i>
+              </span>
+            </div>
+            <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+              <div class="me-2">
+                <h6 class="mb-0">Categorias</h6>
+                <small class="text-body d-block">Explorar categorias de livros</small>
+              </div>
+              <div class="user-progress">
+                <a href="{% url 'app_categoria:listar' %}" class="btn btn-sm btn-outline-warning">Explorar</a>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- Seção exclusiva para Leitores -->
+{% if user_is_leitor and meus_emprestimos %}
+<div class="row mb-6">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="card-title m-0 me-2">Meus Empréstimos Ativos</h5>
+        <a href="{% url 'app_emprestimo:listar' %}" class="btn btn-sm btn-outline-primary">Ver Todos</a>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          {% for emprestimo in meus_emprestimos %}
+          <div class="col-md-4 mb-4">
+            <div class="card border">
+              <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="avatar avatar-sm me-3">
+                    <span class="avatar-initial rounded bg-label-primary">
+                      <i class="bx bx-book"></i>
+                    </span>
+                  </div>
+                  <div>
+                    <h6 class="mb-0">{{ emprestimo.livro.titulo }}</h6>
+                    {% if emprestimo.livro.autor %}
+                      <small class="text-muted">{{ emprestimo.livro.autor }}</small>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="mb-2">
+                  <small class="text-muted">Emprestado:</small> {{ emprestimo.data_emprestimo|date:"d/m/Y" }}
+                </div>
+                <div class="mb-2">
+                  <small class="text-muted">Devolver até:</small> {{ emprestimo.data_devolucao_prevista|date:"d/m/Y" }}
+                </div>
+                <div>
+                  {% if emprestimo.esta_atrasado %}
+                    <span class="badge bg-danger">Atrasado</span>
+                  {% else %}
+                    <span class="badge bg-success">Em dia</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}

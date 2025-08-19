@@ -1,14 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from .models import Livro
 from app_categoria.models import Categoria
-
-def is_funcionario(user):
-    return user.is_staff or user.is_superuser
+from biblioteca.decorators import funcionario_or_leitor_required, funcionario_required
 
 @login_required
+@funcionario_or_leitor_required
 def livro_list(request):
     search = request.GET.get('search', '')
     categoria_id = request.GET.get('categoria', '')
@@ -16,7 +15,7 @@ def livro_list(request):
     livros = Livro.objects.all()
     
     # Se não for funcionário, mostrar apenas livros disponíveis
-    if not (request.user.is_staff or request.user.is_superuser):
+    if not request.user.groups.filter(name='Funcionarios').exists():
         livros = livros.filter(disponivel=True)
     
     if search:
@@ -37,7 +36,7 @@ def livro_list(request):
     return render(request, 'app_livro/list.html', context)
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_required
 def livro_create(request):
     if request.method == 'POST':
         try:
@@ -65,7 +64,7 @@ def livro_create(request):
     return render(request, 'app_livro/form.html', {'categorias': categorias})
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_required
 def livro_update(request, pk):
     livro = get_object_or_404(Livro, pk=pk)
     
@@ -95,7 +94,7 @@ def livro_update(request, pk):
     return render(request, 'app_livro/form.html', {'object': livro, 'categorias': categorias})
 
 @login_required
-@user_passes_test(is_funcionario)
+@funcionario_required
 def livro_delete(request, pk):
     livro = get_object_or_404(Livro, pk=pk)
     if request.method == 'POST':
