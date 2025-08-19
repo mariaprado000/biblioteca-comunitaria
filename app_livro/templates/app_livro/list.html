@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Livros - Biblioteca Comunitária{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Livros</h1>
+    {% if user.is_staff %}
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{% url 'app_livro:criar' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Novo Livro
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="row mb-3">
+    <div class="col-md-8">
+        <form method="get" class="row g-3">
+            <div class="col-md-6">
+                <input type="text" name="search" class="form-control" placeholder="Buscar por título ou autor..." value="{{ search }}">
+            </div>
+            <div class="col-md-4">
+                <select name="categoria" class="form-select">
+                    <option value="">Todas as categorias</option>
+                    {% for categoria in categorias %}
+                        <option value="{{ categoria.id }}" {% if categoria.id|stringformat:"s" == categoria_selecionada %}selected{% endif %}>
+                            {{ categoria.nome }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+    <div class="col-md-4">
+        {% if search or categoria_selecionada %}
+            <a href="{% url 'app_livro:listar' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-times"></i> Limpar filtros
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Título</th>
+                <th>Autor</th>
+                <th>Categoria</th>
+                <th>Ano</th>
+                <th>Status</th>
+                {% if user.is_staff %}
+                    <th width="200">Ações</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for livro in livros %}
+                <tr>
+                    <td>{{ livro.titulo }}</td>
+                    <td>{{ livro.autor }}</td>
+                    <td>{{ livro.categoria.nome|default:"-" }}</td>
+                    <td>{{ livro.ano }}</td>
+                    <td>
+                        {% if livro.disponivel %}
+                            <span class="badge bg-success">Disponível</span>
+                        {% else %}
+                            <span class="badge bg-warning">Emprestado</span>
+                        {% endif %}
+                    </td>
+                    {% if user.is_staff %}
+                        <td>
+                            <a href="{% url 'app_livro:editar' livro.pk %}" class="btn btn-sm btn-warning me-1">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'app_livro:deletar' livro.pk %}" class="btn btn-sm btn-danger">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    {% endif %}
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="{% if user.is_staff %}6{% else %}5{% endif %}" class="text-center text-muted">
+                        {% if search or categoria_selecionada %}
+                            Nenhum livro encontrado com os filtros aplicados
+                        {% else %}
+                            Nenhum livro cadastrado
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Devolver Livro - Biblioteca Comunitária{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Devolver Livro</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'app_emprestimo:listar' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-check-circle"></i> Confirmar Devolução
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Livro:</strong> {{ object.livro.titulo }}<br>
+                        <strong>Autor:</strong> {{ object.livro.autor }}<br>
+                        <strong>Leitor:</strong> {{ object.leitor.usuario.first_name }} {{ object.leitor.usuario.last_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Data do Empréstimo:</strong> {{ object.data_emprestimo|date:"d/m/Y" }}<br>
+                        <strong>Data Prevista:</strong> {{ object.data_devolucao_prevista|date:"d/m/Y" }}<br>
+                        <strong>Renovações:</strong> {{ object.renovacao }}/2
+                    </div>
+                </div>
+                
+                {% if multa_atual > 0 %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Atenção!</strong> Este empréstimo está em atraso.
+                        <br><strong>Multa a ser cobrada: R$ {{ multa_atual|floatformat:2 }}</strong>
+                    </div>
+                {% else %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        <strong>Perfeito!</strong> Livro sendo devolvido dentro do prazo. Sem multa.
+                    </div>
+                {% endif %}
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Informações da Devolução:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Data da devolução: <strong>{{ "now"|date:"d/m/Y" }}</strong></li>
+                        <li>O livro ficará disponível para novos empréstimos</li>
+                        {% if multa_atual > 0 %}
+                            <li class="text-danger">Multa calculada: {{ object.data_devolucao_prevista|timesince }} de atraso × R$ 2,00/dia</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> Confirmar Devolução
+                        {% if multa_atual > 0 %}
+                            (R$ {{ multa_atual|floatformat:2 }})
+                        {% endif %}
+                    </button>
+                    <a href="{% url 'app_emprestimo:listar' %}" class="btn btn-secondary ms-2">
+                        Cancelar
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

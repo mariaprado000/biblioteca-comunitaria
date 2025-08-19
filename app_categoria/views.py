@@ -9,8 +9,17 @@ def is_funcionario(user):
 @login_required
 @user_passes_test(is_funcionario)
 def categoria_list(request):
-    categorias = Categoria.objects.all().order_by('nome')
-    return render(request, 'app_categoria/list.html', {'categorias': categorias})
+    search = request.GET.get('search', '')
+    if search:
+        categorias = Categoria.objects.filter(nome__icontains=search).order_by('nome')
+    else:
+        categorias = Categoria.objects.all().order_by('nome')
+    
+    context = {
+        'categorias': categorias,
+        'search': search
+    }
+    return render(request, 'app_categoria/list.html', context)
 
 @login_required
 @user_passes_test(is_funcionario)
@@ -20,7 +29,7 @@ def categoria_create(request):
         descricao = request.POST.get('descricao', '')
         Categoria.objects.create(nome=nome, descricao=descricao)
         messages.success(request, 'Categoria criada com sucesso!')
-        return redirect('app_categoria:list')
+        return redirect('app_categoria:listar')
     return render(request, 'app_categoria/form.html')
 
 @login_required
@@ -32,7 +41,7 @@ def categoria_update(request, pk):
         categoria.descricao = request.POST.get('descricao', '')
         categoria.save()
         messages.success(request, 'Categoria atualizada com sucesso!')
-        return redirect('app_categoria:list')
+        return redirect('app_categoria:listar')
     return render(request, 'app_categoria/form.html', {'object': categoria})
 
 @login_required
@@ -42,5 +51,5 @@ def categoria_delete(request, pk):
     if request.method == 'POST':
         categoria.delete()
         messages.success(request, 'Categoria excluída com sucesso!')
-        return redirect('app_categoria:list')
+        return redirect('app_categoria:listar')
     return render(request, 'app_categoria/confirm_delete.html', {'object': categoria})

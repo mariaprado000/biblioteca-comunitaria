@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if object %}Editar{% else %}Novo{% endif %} Funcionário - Biblioteca Comunitária
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        {% if object %}Editar{% else %}Novo{% endif %} Funcionário
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'app_funcionario:listar' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    {% if object %}Editar{% else %}Cadastrar{% endif %} Funcionário
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <h6 class="mb-3 text-primary">Dados do Usuário</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Nome de Usuário *</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="username" 
+                                       name="username" 
+                                       value="{% if object %}{{ object.usuario.username }}{% endif %}"
+                                       required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="first_name" class="form-label">Nome *</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="first_name" 
+                                       name="first_name" 
+                                       value="{% if object %}{{ object.usuario.first_name }}{% endif %}"
+                                       required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="last_name" class="form-label">Sobrenome *</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="last_name" 
+                                       name="last_name" 
+                                       value="{% if object %}{{ object.usuario.last_name }}{% endif %}"
+                                       required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" 
+                                       class="form-control" 
+                                       id="email" 
+                                       name="email" 
+                                       value="{% if object %}{{ object.usuario.email }}{% endif %}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="password" class="form-label">
+                                    Senha {% if not object %}*{% else %}(deixe em branco para manter a atual){% endif %}
+                                </label>
+                                <input type="password" 
+                                       class="form-control" 
+                                       id="password" 
+                                       name="password" 
+                                       {% if not object %}required{% endif %}>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    <h6 class="mb-3 text-primary">Dados Profissionais</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="cargo" class="form-label">Cargo *</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="cargo" 
+                                       name="cargo" 
+                                       value="{% if object %}{{ object.cargo }}{% endif %}"
+                                       required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="salario" class="form-label">Salário *</label>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="salario" 
+                                       name="salario" 
+                                       value="{% if object %}{{ object.salario }}{% endif %}"
+                                       step="0.01"
+                                       min="0"
+                                       required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="data_admissao" class="form-label">Data de Admissão *</label>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="data_admissao" 
+                                       name="data_admissao" 
+                                       value="{% if object %}{{ object.data_admissao|date:'Y-m-d' }}{% endif %}"
+                                       required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if object %}
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       id="ativo" 
+                                       name="ativo"
+                                       {% if object.ativo %}checked{% endif %}>
+                                <label class="form-check-label" for="ativo">
+                                    Funcionário ativo
+                                </label>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'app_funcionario:listar' %}" class="btn btn-secondary me-md-2">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Novo Empréstimo - Biblioteca Comunitária{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Novo Empréstimo</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'app_emprestimo:listar' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Realizar Empréstimo</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="livro" class="form-label">Livro *</label>
+                                <select class="form-select" id="livro" name="livro" required>
+                                    <option value="">Selecione um livro</option>
+                                    {% for livro in livros %}
+                                        <option value="{{ livro.id }}">{{ livro.titulo }} - {{ livro.autor }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% if not livros %}
+                                    <div class="form-text text-warning">
+                                        <i class="fas fa-exclamation-triangle"></i> Nenhum livro disponível para empréstimo
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="leitor" class="form-label">Leitor *</label>
+                                <select class="form-select" id="leitor" name="leitor" required>
+                                    <option value="">Selecione um leitor</option>
+                                    {% for leitor in leitores %}
+                                        <option value="{{ leitor.id }}">{{ leitor.usuario.first_name }} {{ leitor.usuario.last_name }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% if not leitores %}
+                                    <div class="form-text text-warning">
+                                        <i class="fas fa-exclamation-triangle"></i> Nenhum leitor ativo disponível
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="dias_emprestimo" class="form-label">Dias para Devolução</label>
+                                <select class="form-select" id="dias_emprestimo" name="dias_emprestimo">
+                                    <option value="7">7 dias</option>
+                                    <option value="14" selected>14 dias (padrão)</option>
+                                    <option value="21">21 dias</option>
+                                    <option value="30">30 dias</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Data Prevista de Devolução</label>
+                                <div class="form-control-plaintext" id="data_devolucao_display">
+                                    Selecione os dias para calcular
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Informações do Empréstimo:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Multa por atraso: R$ 2,00 por dia</li>
+                            <li>Máximo de 2 renovações por empréstimo</li>
+                            <li>Renovação não permitida para livros em atraso</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'app_emprestimo:listar' %}" class="btn btn-secondary me-md-2">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary" {% if not livros or not leitores %}disabled{% endif %}>
+                            <i class="fas fa-handshake"></i> Realizar Empréstimo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const diasSelect = document.getElementById('dias_emprestimo');
+    const dataDisplay = document.getElementById('data_devolucao_display');
+    
+    function calcularDataDevolucao() {
+        const dias = parseInt(diasSelect.value);
+        const hoje = new Date();
+        const dataDevolucao = new Date(hoje.getTime() + (dias * 24 * 60 * 60 * 1000));
+        
+        const options = { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit' 
+        };
+        dataDisplay.textContent = dataDevolucao.toLocaleDateString('pt-BR', options);
+    }
+    
+    diasSelect.addEventListener('change', calcularDataDevolucao);
+    calcularDataDevolucao(); // Calcular inicialmente
+});
+</script>
+{% endblock %}

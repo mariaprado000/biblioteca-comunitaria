@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Renovar Empréstimo - Biblioteca Comunitária{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Renovar Empréstimo</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'app_emprestimo:listar' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-redo"></i> Renovar Empréstimo
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Livro:</strong> {{ object.livro.titulo }}<br>
+                        <strong>Autor:</strong> {{ object.livro.autor }}<br>
+                        <strong>Leitor:</strong> {{ object.leitor.usuario.first_name }} {{ object.leitor.usuario.last_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Data do Empréstimo:</strong> {{ object.data_emprestimo|date:"d/m/Y" }}<br>
+                        <strong>Data Prevista Atual:</strong> {{ object.data_devolucao_prevista|date:"d/m/Y" }}<br>
+                        <strong>Renovações:</strong> {{ object.renovacao }}/2
+                    </div>
+                </div>
+                
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <strong>Renovação Permitida!</strong> Este empréstimo pode ser renovado.
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="dias_renovacao" class="form-label">Período de Renovação</label>
+                        <select class="form-select" id="dias_renovacao" name="dias_renovacao">
+                            <option value="7">7 dias</option>
+                            <option value="14" selected>14 dias (padrão)</option>
+                            <option value="21">21 dias</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Nova Data Prevista de Devolução</label>
+                        <div class="form-control-plaintext" id="nova_data_display">
+                            Selecione os dias para calcular
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Atenção:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Esta será a renovação número {{ object.renovacao|add:1 }} de 2</li>
+                            <li>Após {{ 2|sub:object.renovacao }} renovação(ões), o livro deverá ser devolvido</li>
+                            <li>Renovações não são permitidas para empréstimos em atraso</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'app_emprestimo:listar' %}" class="btn btn-secondary me-md-2">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-info">
+                            <i class="fas fa-redo"></i> Renovar Empréstimo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const diasSelect = document.getElementById('dias_renovacao');
+    const novaDataDisplay = document.getElementById('nova_data_display');
+    
+    // Data atual de devolução prevista
+    const dataAtual = new Date('{{ object.data_devolucao_prevista|date:"Y-m-d" }}');
+    
+    function calcularNovaData() {
+        const dias = parseInt(diasSelect.value);
+        const novaData = new Date(dataAtual.getTime() + (dias * 24 * 60 * 60 * 1000));
+        
+        const options = { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit' 
+        };
+        novaDataDisplay.textContent = novaData.toLocaleDateString('pt-BR', options);
+    }
+    
+    diasSelect.addEventListener('change', calcularNovaData);
+    calcularNovaData(); // Calcular inicialmente
+});
+</script>
+{% endblock %}

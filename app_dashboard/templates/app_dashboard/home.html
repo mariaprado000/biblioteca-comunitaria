@@ -14,7 +14,7 @@
                 <div class="d-flex justify-content-between">
                     <div>
                         <h5>Livros</h5>
-                        <h3 id="total-livros">0</h3>
+                        <h3 id="total-livros">{{ total_livros }}</h3>
                     </div>
                     <div class="align-self-center">
                         <i class="fas fa-book fa-2x"></i>
@@ -30,7 +30,7 @@
                 <div class="d-flex justify-content-between">
                     <div>
                         <h5>Leitores</h5>
-                        <h3 id="total-leitores">0</h3>
+                        <h3 id="total-leitores">{{ total_leitores }}</h3>
                     </div>
                     <div class="align-self-center">
                         <i class="fas fa-users fa-2x"></i>
@@ -46,7 +46,7 @@
                 <div class="d-flex justify-content-between">
                     <div>
                         <h5>Empréstimos</h5>
-                        <h3 id="total-emprestimos">0</h3>
+                        <h3 id="total-emprestimos">{{ emprestimos_ativos }}</h3>
                     </div>
                     <div class="align-self-center">
                         <i class="fas fa-handshake fa-2x"></i>
@@ -62,7 +62,7 @@
                 <div class="d-flex justify-content-between">
                     <div>
                         <h5>Atrasados</h5>
-                        <h3 id="total-atrasados">0</h3>
+                        <h3 id="total-atrasados">{{ emprestimos_atrasados }}</h3>
                     </div>
                     <div class="align-self-center">
                         <i class="fas fa-exclamation-triangle fa-2x"></i>

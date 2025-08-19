@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Deletar Categoria - Biblioteca Comunitária{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Deletar Categoria</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'app_categoria:listar' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="lead">Tem certeza que deseja deletar a categoria <strong>"{{ object.nome }}"</strong>?</p>
+                
+                {% if object.descricao %}
+                    <div class="alert alert-info">
+                        <strong>Descrição:</strong> {{ object.descricao }}
+                    </div>
+                {% endif %}
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Atenção!</strong> Esta ação não pode ser desfeita.
+                </div>
+                
+                <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Sim, deletar
+                    </button>
+                    <a href="{% url 'app_categoria:listar' %}" class="btn btn-secondary ms-2">
+                        Cancelar
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

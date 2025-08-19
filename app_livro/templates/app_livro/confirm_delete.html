@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Deletar Livro - Biblioteca Comunitária{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Deletar Livro</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'app_livro:listar' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="lead">Tem certeza que deseja deletar o livro <strong>"{{ object.titulo }}"</strong>?</p>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Autor:</strong> {{ object.autor }}<br>
+                        <strong>Ano:</strong> {{ object.ano }}<br>
+                        <strong>Gênero:</strong> {{ object.genero }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Categoria:</strong> {{ object.categoria.nome|default:"-" }}<br>
+                        <strong>ISBN:</strong> {{ object.isbn|default:"-" }}<br>
+                        <strong>Editora:</strong> {{ object.editora|default:"-" }}
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Atenção!</strong> Esta ação não pode ser desfeita. Se existirem empréstimos relacionados a este livro, eles também serão afetados.
+                </div>
+                
+                <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Sim, deletar
+                    </button>
+                    <a href="{% url 'app_livro:listar' %}" class="btn btn-secondary ms-2">
+                        Cancelar
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

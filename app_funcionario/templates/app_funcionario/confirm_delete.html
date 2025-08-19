@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Desativar Funcionário - Biblioteca Comunitária{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Desativar Funcionário</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'app_funcionario:listar' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Desativação
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="lead">Tem certeza que deseja desativar o funcionário <strong>{{ object.usuario.first_name }} {{ object.usuario.last_name }}</strong>?</p>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Nome:</strong> {{ object.usuario.first_name }} {{ object.usuario.last_name }}<br>
+                        <strong>Cargo:</strong> {{ object.cargo }}<br>
+                        <strong>Salário:</strong> R$ {{ object.salario|floatformat:2 }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Email:</strong> {{ object.usuario.email|default:"-" }}<br>
+                        <strong>Data de Admissão:</strong> {{ object.data_admissao|date:"d/m/Y" }}<br>
+                        <strong>Status atual:</strong> 
+                        {% if object.ativo %}
+                            <span class="badge bg-success">Ativo</span>
+                        {% else %}
+                            <span class="badge bg-danger">Inativo</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Nota:</strong> O funcionário será desativado, mas seus dados não serão perdidos. É possível reativá-lo posteriormente editando seu cadastro.
+                </div>
+                
+                <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-user-slash"></i> Sim, desativar
+                    </button>
+                    <a href="{% url 'app_funcionario:listar' %}" class="btn btn-secondary ms-2">
+                        Cancelar
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

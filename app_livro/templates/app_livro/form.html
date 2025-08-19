@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if object %}Editar{% else %}Novo{% endif %} Livro - Biblioteca Comunitária
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        {% if object %}Editar{% else %}Novo{% endif %} Livro
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'app_livro:listar' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    {% if object %}Editar{% else %}Cadastrar{% endif %} Livro
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="titulo" class="form-label">Título *</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="titulo" 
+                                       name="titulo" 
+                                       value="{% if object %}{{ object.titulo }}{% endif %}"
+                                       required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="autor" class="form-label">Autor *</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="autor" 
+                                       name="autor" 
+                                       value="{% if object %}{{ object.autor }}{% endif %}"
+                                       required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="ano" class="form-label">Ano *</label>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="ano" 
+                                       name="ano" 
+                                       value="{% if object %}{{ object.ano }}{% endif %}"
+                                       min="1000"
+                                       max="2030"
+                                       required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="genero" class="form-label">Gênero *</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="genero" 
+                                       name="genero" 
+                                       value="{% if object %}{{ object.genero }}{% endif %}"
+                                       required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="categoria" class="form-label">Categoria</label>
+                                <select class="form-select" id="categoria" name="categoria">
+                                    <option value="">Selecione uma categoria</option>
+                                    {% for categoria in categorias %}
+                                        <option value="{{ categoria.id }}" 
+                                                {% if object and object.categoria_id == categoria.id %}selected{% endif %}>
+                                            {{ categoria.nome }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="isbn" class="form-label">ISBN</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="isbn" 
+                                       name="isbn" 
+                                       value="{% if object %}{{ object.isbn }}{% endif %}"
+                                       placeholder="Ex: 978-85-123-4567-8">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editora" class="form-label">Editora</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="editora" 
+                                       name="editora" 
+                                       value="{% if object %}{{ object.editora }}{% endif %}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'app_livro:listar' %}" class="btn btn-secondary me-md-2">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
