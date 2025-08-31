@@ -66,10 +66,7 @@ cd biblioteca-comunitaria
 python -m venv venv
 
 # Ativar ambiente virtual
-# Windows:
 venv\Scripts\activate
-# Linux/Mac:
-source venv/bin/activate
 ```
 
 ### 3️⃣ **Instale as Dependências**
@@ -86,12 +83,7 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 5️⃣ **Configure Arquivos Estáticos**
-```bash
-python manage.py collectstatic --noinput
-```
-
-### 6️⃣ **🎯 CONFIGURAÇÃO AUTOMÁTICA COMPLETA**
+### 5️⃣ **🎯 CONFIGURAÇÃO AUTOMÁTICA COMPLETA**
 ```bash
 # ⭐ EXECUTE ESTE COMANDO PARA CONFIGURAR TUDO:
 python create_test_data.py
@@ -139,39 +131,3 @@ python manage.py runserver
 | `ana.costa` | `123456` | Ana Costa |
 
 **Acesso dos Leitores**: Visualização de livros, categorias e próprios empréstimos
-
-## Estrutura do Projeto
-
-```
-biblioteca-comunitaria/
-├── 📁 app_categoria/          # Gestão de categorias de livros
-│   ├── forms.py              # CategoriaForm (Django Forms)
-│   ├── models.py             # Modelo Categoria
-│   └── views.py              # CRUD com validações
-├── 📁 app_dashboard/          # Dashboard com estatísticas
-├── 📁 app_emprestimo/         # Sistema completo de empréstimos
-│   ├── forms.py              # EmprestimoForm, RenovacaoForm, DevolucaoForm
-│   ├── models.py             # Modelo Emprestimo com validações
-│   └── views.py              # Empréstimo, renovação, devolução
-├── 📁 app_funcionario/        # Gestão de funcionários
-│   ├── forms.py              # FuncionarioForm (ModelForm)
-│   └── views.py              # CRUD funcionários + User integration
-├── 📁 app_leitor/             # Gestão de leitores  
-│   ├── forms.py              # LeitorForm com validações CPF
-│   └── views.py              # CRUD leitores + User integration
-├── 📁 app_livro/              # Gestão completa de livros
-│   ├── forms.py              # LivroForm com validações ISBN
-│   ├── models.py             # Modelo Livro + validações customizadas
-│   └── views.py              # CRUD livros com filtros
-├── 📁 app_user/               # Sistema de autenticação
-│   ├── forms.py              # LeitorRegistrationForm
-│   └── views.py              # Login/registro com grupos
-├── 📁 biblioteca/             # Configurações Django
-│   ├── decorators.py         # Decorators de permissão
-│   └── settings.py           # Configurações do projeto
-├── 📁 templates/              # Templates base Bootstrap 5
-├── 📁 base_static/            # Sneat Admin Template
-├── 📄 create_test_data.py     # Script configuração completa
-├── 📄 requirements.txt       # Dependências Python
-└── 📄 manage.py              # Django management
-```
