@@ -13,18 +13,18 @@ from biblioteca.decorators import funcionario_required
 def funcionario_list(request):
     search = request.GET.get('search', '')
     
-    funcionarios = Funcionario.objects.select_related('usuario')
+    funcionarios = Funcionario.objects.all()
     
     if search:
         funcionarios = funcionarios.filter(
-            usuario__first_name__icontains=search
+            first_name__icontains=search
         ) | funcionarios.filter(
-            usuario__last_name__icontains=search
+            last_name__icontains=search
         ) | funcionarios.filter(
             cargo__icontains=search
         )
     
-    funcionarios = funcionarios.order_by('usuario__first_name')
+    funcionarios = funcionarios.order_by('first_name')
     
     context = {
         'funcionarios': funcionarios,
@@ -43,23 +43,15 @@ def funcionario_create(request):
         if form.is_valid() and username and password:
             try:
                 with transaction.atomic():
-                    # Criar usuário
-                    user = User.objects.create_user(
-                        username=username,
-                        email=form.cleaned_data['email'],
-                        first_name=form.cleaned_data['first_name'],
-                        last_name=form.cleaned_data['last_name'],
-                        password=password
-                    )
+                    # Criar funcionário (que herda de User)
+                    funcionario = form.save(commit=False)
+                    funcionario.username = username
+                    funcionario.set_password(password)
+                    funcionario.save()
                     
                     # Adicionar ao grupo Funcionarios
                     funcionarios_group, created = Group.objects.get_or_create(name='Funcionarios')
-                    user.groups.add(funcionarios_group)
-                    
-                    # Criar funcionário
-                    funcionario = form.save(commit=False)
-                    funcionario.usuario = user
-                    funcionario.save()
+                    funcionario.groups.add(funcionarios_group)
                     
                     messages.success(request, 'Funcionário criado com sucesso!')
                     return redirect('app_funcionario:listar')
@@ -88,22 +80,15 @@ def funcionario_update(request, pk):
         if form.is_valid():
             try:
                 with transaction.atomic():
-                    # Atualizar usuário
-                    user = funcionario.usuario
+                    # Atualizar funcionário (que herda de User)
+                    funcionario = form.save(commit=False)
                     if username:
-                        user.username = username
-                    user.email = form.cleaned_data['email']
-                    user.first_name = form.cleaned_data['first_name']
-                    user.last_name = form.cleaned_data['last_name']
+                        funcionario.username = username
                     
                     # Atualizar senha se fornecida
                     if password:
-                        user.set_password(password)
+                        funcionario.set_password(password)
                     
-                    user.save()
-                    
-                    # Atualizar funcionário
-                    funcionario = form.save(commit=False)
                     funcionario.ativo = request.POST.get('ativo') == 'on'
                     funcionario.save()
                     
@@ -112,11 +97,7 @@ def funcionario_update(request, pk):
             except Exception as e:
                 messages.error(request, f'Erro ao atualizar funcionário: {e}')
     else:
-        form = FuncionarioForm(instance=funcionario, initial={
-            'first_name': funcionario.usuario.first_name,
-            'last_name': funcionario.usuario.last_name,
-            'email': funcionario.usuario.email,
-        })
+        form = FuncionarioForm(instance=funcionario)
     
     return render(request, 'app_funcionario/form.html', {
         'form': form, 

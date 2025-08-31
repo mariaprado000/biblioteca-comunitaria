@@ -13,18 +13,18 @@ from biblioteca.decorators import funcionario_required
 def leitor_list(request):
     search = request.GET.get('search', '')
     
-    leitores = Leitor.objects.select_related('usuario')
+    leitores = Leitor.objects.all()
     
     if search:
         leitores = leitores.filter(
-            usuario__first_name__icontains=search
+            first_name__icontains=search
         ) | leitores.filter(
-            usuario__last_name__icontains=search
+            last_name__icontains=search
         ) | leitores.filter(
             cpf__icontains=search
         )
     
-    leitores = leitores.order_by('usuario__first_name')
+    leitores = leitores.order_by('first_name')
     
     context = {
         'leitores': leitores,
@@ -43,23 +43,15 @@ def leitor_create(request):
         if form.is_valid() and username and password:
             try:
                 with transaction.atomic():
-                    # Criar usuário
-                    user = User.objects.create_user(
-                        username=username,
-                        email=form.cleaned_data['email'],
-                        first_name=form.cleaned_data['first_name'],
-                        last_name=form.cleaned_data['last_name'],
-                        password=password
-                    )
+                    # Criar leitor (que herda de User)
+                    leitor = form.save(commit=False)
+                    leitor.username = username
+                    leitor.set_password(password)
+                    leitor.save()
                     
                     # Adicionar ao grupo Leitores
                     leitores_group, created = Group.objects.get_or_create(name='Leitores')
-                    user.groups.add(leitores_group)
-                    
-                    # Criar leitor
-                    leitor = form.save(commit=False)
-                    leitor.usuario = user
-                    leitor.save()
+                    leitor.groups.add(leitores_group)
                     
                     messages.success(request, 'Leitor criado com sucesso!')
                     return redirect('app_leitor:listar')
@@ -70,6 +62,8 @@ def leitor_create(request):
                 messages.error(request, 'Nome de usuário é obrigatório')
             if not password:
                 messages.error(request, 'Senha é obrigatória')
+            if not form.is_valid():
+                messages.error(request, 'Por favor, corrija os erros no formulário.')
     else:
         form = LeitorForm()
     
@@ -88,22 +82,15 @@ def leitor_update(request, pk):
         if form.is_valid():
             try:
                 with transaction.atomic():
-                    # Atualizar usuário
-                    user = leitor.usuario
+                    # Atualizar leitor (que herda de User)
+                    leitor = form.save(commit=False)
                     if username:
-                        user.username = username
-                    user.email = form.cleaned_data['email']
-                    user.first_name = form.cleaned_data['first_name']
-                    user.last_name = form.cleaned_data['last_name']
+                        leitor.username = username
                     
                     # Atualizar senha se fornecida
                     if password:
-                        user.set_password(password)
+                        leitor.set_password(password)
                     
-                    user.save()
-                    
-                    # Atualizar leitor
-                    leitor = form.save(commit=False)
                     leitor.ativo = request.POST.get('ativo') == 'on'
                     leitor.save()
                     
@@ -112,11 +99,7 @@ def leitor_update(request, pk):
             except Exception as e:
                 messages.error(request, f'Erro ao atualizar leitor: {e}')
     else:
-        form = LeitorForm(instance=leitor, initial={
-            'first_name': leitor.usuario.first_name,
-            'last_name': leitor.usuario.last_name,
-            'email': leitor.usuario.email,
-        })
+        form = LeitorForm(instance=leitor)
     
     return render(request, 'app_leitor/form.html', {
         'form': form, 

@@ -67,11 +67,11 @@
               <div class="d-flex align-items-center">
                 <div class="avatar avatar-sm me-3">
                   <div class="avatar-initials w-px-32 h-px-32" style="font-size: 0.75rem;">
-                    {{ funcionario.usuario.first_name.0|default:funcionario.usuario.username.0 }}{{ funcionario.usuario.last_name.0|default:funcionario.usuario.username.1|default:"" }}
+                    {{ funcionario.first_name.0|default:funcionario.username.0 }}{{ funcionario.last_name.0|default:funcionario.username.1|default:"" }}
                   </div>
                 </div>
                 <div>
-                  <strong>{{ funcionario.usuario.first_name }} {{ funcionario.usuario.last_name }}</strong>
+                  <strong>{{ funcionario.first_name }} {{ funcionario.last_name }}</strong>
                   <br><small class="text-muted">
                     <i class="bx bx-calendar me-1"></i>Desde {{ funcionario.data_admissao|date:"m/Y" }}
                   </small>

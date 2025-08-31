@@ -67,12 +67,12 @@
               <div class="d-flex align-items-center">
                 <div class="avatar avatar-sm me-3">
                   <div class="avatar-initials w-px-32 h-px-32" style="font-size: 0.75rem;">
-                    {{ leitor.usuario.first_name.0|default:leitor.usuario.username.0 }}{{ leitor.usuario.last_name.0|default:leitor.usuario.username.1|default:"" }}
+                    {{ leitor.first_name.0|default:leitor.username.0 }}{{ leitor.last_name.0|default:leitor.username.1|default:"" }}
                   </div>
                 </div>
                 <div>
-                  <strong>{{ leitor.usuario.first_name }} {{ leitor.usuario.last_name }}</strong>
-                  <br><small class="text-muted">@{{ leitor.usuario.username }}</small>
+                  <strong>{{ leitor.first_name }} {{ leitor.last_name }}</strong>
+                  <br><small class="text-muted">@{{ leitor.username }}</small>
                 </div>
               </div>
             </td>
@@ -83,9 +83,9 @@
                   <i class="bx bx-phone me-1"></i>{{ leitor.telefone }}
                 {% endif %}
               </div>
-              {% if leitor.usuario.email %}
+              {% if leitor.email %}
                 <small class="text-muted">
-                  <i class="bx bx-envelope me-1"></i>{{ leitor.usuario.email }}
+                  <i class="bx bx-envelope me-1"></i>{{ leitor.email }}
                 </small>
               {% endif %}
             </td>

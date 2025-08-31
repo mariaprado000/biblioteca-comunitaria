@@ -37,7 +37,7 @@
                                        class="form-control" 
                                        id="username" 
                                        name="username" 
-                                       value="{% if object %}{{ object.usuario.username }}{% endif %}"
+                                       value="{% if object %}{{ object.username }}{% endif %}"
                                        required>
                             </div>
                         </div>
@@ -48,7 +48,7 @@
                                        class="form-control" 
                                        id="first_name" 
                                        name="first_name" 
-                                       value="{% if object %}{{ object.usuario.first_name }}{% endif %}"
+                                       value="{% if object %}{{ object.first_name }}{% endif %}"
                                        required>
                             </div>
                         </div>
@@ -59,7 +59,7 @@
                                        class="form-control" 
                                        id="last_name" 
                                        name="last_name" 
-                                       value="{% if object %}{{ object.usuario.last_name }}{% endif %}"
+                                       value="{% if object %}{{ object.last_name }}{% endif %}"
                                        required>
                             </div>
                         </div>
@@ -73,7 +73,7 @@
                                        class="form-control" 
                                        id="email" 
                                        name="email" 
-                                       value="{% if object %}{{ object.usuario.email }}{% endif %}">
+                                       value="{% if object %}{{ object.email }}{% endif %}">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -101,8 +101,8 @@
                                        id="cpf" 
                                        name="cpf" 
                                        value="{% if object %}{{ object.cpf }}{% endif %}"
-                                       placeholder="00000000000"
-                                       maxlength="11"
+                                       placeholder="000.000.000-00"
+                                       maxlength="14"
                                        required>
                             </div>
                         </div>
@@ -115,6 +115,7 @@
                                        name="telefone" 
                                        value="{% if object %}{{ object.telefone }}{% endif %}"
                                        placeholder="(11) 99999-9999"
+                                       maxlength="15"
                                        required>
                             </div>
                         </div>
@@ -168,4 +169,47 @@
         </div>
     </div>
 </div>
+
+<script>
+// Máscara para CPF
+document.getElementById('cpf').addEventListener('input', function (e) {
+    let x = e.target.value.replace(/\D/g, '');
+    x = x.replace(/(\d{3})(\d)/, '$1.$2');
+    x = x.replace(/(\d{3})(\d)/, '$1.$2');
+    x = x.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    e.target.value = x;
+});
+
+// Máscara para Telefone
+document.getElementById('telefone').addEventListener('input', function (e) {
+    let x = e.target.value.replace(/\D/g, '');
+    x = x.replace(/(\d{2})(\d)/, '($1) $2');
+    x = x.replace(/(\d{4})(\d)/, '$1-$2');
+    x = x.replace(/(\d{4})-(\d)(\d{4})/, '$1$2-$3');
+    e.target.value = x;
+});
+
+// Remover caracteres especiais antes do envio para validação no servidor
+document.querySelector('form').addEventListener('submit', function(e) {
+    // CPF: manter apenas números
+    const cpfField = document.getElementById('cpf');
+    const cpfHidden = document.createElement('input');
+    cpfHidden.type = 'hidden';
+    cpfHidden.name = 'cpf';
+    cpfHidden.value = cpfField.value.replace(/\D/g, '');
+    
+    // Telefone: manter apenas números  
+    const telefoneField = document.getElementById('telefone');
+    const telefoneHidden = document.createElement('input');
+    telefoneHidden.type = 'hidden';
+    telefoneHidden.name = 'telefone';
+    telefoneHidden.value = telefoneField.value.replace(/\D/g, '');
+    
+    // Desabilitar os campos originais e adicionar os hidden
+    cpfField.disabled = true;
+    telefoneField.disabled = true;
+    this.appendChild(cpfHidden);
+    this.appendChild(telefoneHidden);
+});
+</script>
 {% endblock %}

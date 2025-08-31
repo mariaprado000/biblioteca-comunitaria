@@ -35,22 +35,24 @@ def validar_cpf(cpf):
     if resto != int(cpf[10]):
         raise ValidationError('CPF inválido')
 
-telefone_validator = RegexValidator(
-    regex=r'^\(\d{2}\)\s?\d{4,5}-\d{4}$',
-    message='Telefone deve estar no formato (XX) XXXXX-XXXX ou (XX) XXXX-XXXX'
-)
+def validar_telefone(telefone):
+    # Remove todos os caracteres não numéricos
+    apenas_numeros = re.sub(r'[^0-9]', '', telefone)
+    
+    # Deve ter entre 10 e 11 dígitos (com DDD)
+    if len(apenas_numeros) < 10 or len(apenas_numeros) > 11:
+        raise ValidationError('Telefone deve ter 10 ou 11 dígitos (incluindo DDD)')
 
-class Leitor(models.Model):
-    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='novo_leitor')
+class Leitor(User):
     cpf = models.CharField(max_length=11, unique=True, validators=[validar_cpf])
-    telefone = models.CharField(max_length=15, validators=[telefone_validator])
+    telefone = models.CharField(max_length=15, validators=[validar_telefone])
     endereco = models.TextField()
     data_nascimento = models.DateField()
     ativo = models.BooleanField(default=True)
     criado_em = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.usuario.first_name} {self.usuario.last_name}"
+        return f"{self.first_name} {self.last_name}"
     
     class Meta:
         verbose_name = 'Leitor'

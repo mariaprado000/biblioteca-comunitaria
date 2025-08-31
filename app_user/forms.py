@@ -116,7 +116,7 @@ class LeitorRegistrationForm(UserCreationForm):
             
             # Criar perfil de leitor
             leitor = Leitor.objects.create(
-                usuario=user,
+                pk=user.pk,
                 cpf=self.cleaned_data['cpf'].replace('.', '').replace('-', ''),
                 telefone=self.cleaned_data.get('telefone', ''),
                 endereco=self.cleaned_data.get('endereco', ''),

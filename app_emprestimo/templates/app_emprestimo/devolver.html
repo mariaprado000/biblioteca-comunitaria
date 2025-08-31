@@ -25,7 +25,7 @@
                     <div class="col-md-6">
                         <strong>Livro:</strong> {{ object.livro.titulo }}<br>
                         <strong>Autor:</strong> {{ object.livro.autor }}<br>
-                        <strong>Leitor:</strong> {{ object.leitor.usuario.first_name }} {{ object.leitor.usuario.last_name }}
+                        <strong>Leitor:</strong> {{ object.leitor.first_name }} {{ object.leitor.last_name }}
                     </div>
                     <div class="col-md-6">
                         <strong>Data do Empréstimo:</strong> {{ object.data_emprestimo|date:"d/m/Y" }}<br>

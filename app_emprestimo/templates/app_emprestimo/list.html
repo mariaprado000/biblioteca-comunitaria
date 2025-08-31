@@ -90,11 +90,11 @@
               <div class="d-flex align-items-center">
                 <div class="avatar avatar-sm me-3">
                   <div class="avatar-initials w-px-32 h-px-32" style="font-size: 0.75rem;">
-                    {{ emprestimo.leitor.usuario.first_name.0|default:emprestimo.leitor.usuario.username.0 }}{{ emprestimo.leitor.usuario.last_name.0|default:emprestimo.leitor.usuario.username.1|default:"" }}
+                    {{ emprestimo.leitor.first_name.0|default:emprestimo.leitor.username.0 }}{{ emprestimo.leitor.last_name.0|default:emprestimo.leitor.username.1|default:"" }}
                   </div>
                 </div>
                 <div>
-                  <strong>{{ emprestimo.leitor.usuario.first_name }} {{ emprestimo.leitor.usuario.last_name }}</strong>
+                  <strong>{{ emprestimo.leitor.first_name }} {{ emprestimo.leitor.last_name }}</strong>
                 </div>
               </div>
             </td>

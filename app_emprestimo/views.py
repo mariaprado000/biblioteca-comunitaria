@@ -28,15 +28,15 @@ def emprestimo_list(request):
     search = request.GET.get('search', '')
     status = request.GET.get('status', '')
     
-    emprestimos = Emprestimo.objects.select_related('livro', 'leitor__usuario', 'emprestado_por__usuario')
+    emprestimos = Emprestimo.objects.select_related('livro', 'leitor', 'emprestado_por')
     
     if search:
         emprestimos = emprestimos.filter(
             livro__titulo__icontains=search
         ) | emprestimos.filter(
-            leitor__usuario__first_name__icontains=search
+            leitor__first_name__icontains=search
         ) | emprestimos.filter(
-            leitor__usuario__last_name__icontains=search
+            leitor__last_name__icontains=search
         )
     
     if status == 'ativo':
@@ -66,7 +66,7 @@ def emprestimo_create(request):
         if form.is_valid():
             try:
                 # Obter funcionário atual
-                funcionario = get_object_or_404(Funcionario, usuario=request.user)
+                funcionario = request.user  # request.user já é um Funcionario
                 
                 # Criar empréstimo
                 dias_emprestimo = form.cleaned_data['dias_emprestimo']
@@ -146,7 +146,7 @@ def emprestimo_renovar(request, pk):
         if form.is_valid():
             try:
                 dias_renovacao = form.cleaned_data['dias_renovacao']
-                funcionario = get_object_or_404(Funcionario, usuario=request.user)
+                funcionario = request.user  # request.user já é um Funcionario
                 
                 # Criar novo empréstimo (renovação) vinculado ao atual
                 novo_emprestimo = Emprestimo(

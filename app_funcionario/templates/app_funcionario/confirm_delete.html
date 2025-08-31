@@ -21,16 +21,16 @@
                 </h5>
             </div>
             <div class="card-body">
-                <p class="lead">Tem certeza que deseja desativar o funcionário <strong>{{ object.usuario.first_name }} {{ object.usuario.last_name }}</strong>?</p>
+                <p class="lead">Tem certeza que deseja desativar o funcionário <strong>{{ object.first_name }} {{ object.last_name }}</strong>?</p>
                 
                 <div class="row">
                     <div class="col-md-6">
-                        <strong>Nome:</strong> {{ object.usuario.first_name }} {{ object.usuario.last_name }}<br>
+                        <strong>Nome:</strong> {{ object.first_name }} {{ object.last_name }}<br>
                         <strong>Cargo:</strong> {{ object.cargo }}<br>
                         <strong>Salário:</strong> R$ {{ object.salario|floatformat:2 }}
                     </div>
                     <div class="col-md-6">
-                        <strong>Email:</strong> {{ object.usuario.email|default:"-" }}<br>
+                        <strong>Email:</strong> {{ object.email|default:"-" }}<br>
                         <strong>Data de Admissão:</strong> {{ object.data_admissao|date:"d/m/Y" }}<br>
                         <strong>Status atual:</strong> 
                         {% if object.ativo %}

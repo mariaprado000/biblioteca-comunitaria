@@ -29,7 +29,7 @@ def home(request):
     else:
         # Dados limitados para leitores
         try:
-            leitor = Leitor.objects.get(usuario=request.user)
+            leitor = Leitor.objects.get(pk=request.user.pk)
             meus_emprestimos = Emprestimo.objects.filter(
                 leitor=leitor,
                 data_devolucao__isnull=True

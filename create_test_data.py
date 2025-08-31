@@ -78,8 +78,8 @@ def create_admin_user(funcionarios_group):
     """Criar usuário administrativo"""
     print("* Criando usuario administrativo...")
     
-    # Criar superusuário admin
-    admin_user, created = User.objects.get_or_create(
+    # Criar perfil de funcionário para o admin
+    funcionario, created = Funcionario.objects.get_or_create(
         username='admin',
         defaults={
             'email': 'admin@biblioteca.com',
@@ -88,26 +88,6 @@ def create_admin_user(funcionarios_group):
             'is_staff': True,
             'is_superuser': True,
             'is_active': True,
-        }
-    )
-    
-    if created:
-        admin_user.set_password('admin123')
-        admin_user.save()
-        print("   + Usuario admin criado (username: admin, password: admin123)")
-    else:
-        # Garantir que a senha esteja correta
-        admin_user.set_password('admin123')
-        admin_user.save()
-        print("   + Usuario admin ja existe (senha redefinida para admin123)")
-    
-    # Adicionar ao grupo de funcionários
-    admin_user.groups.add(funcionarios_group)
-    
-    # Criar perfil de funcionário para o admin
-    funcionario, created = Funcionario.objects.get_or_create(
-        usuario=admin_user,
-        defaults={
             'cargo': 'Bibliotecario Chefe',
             'salario': 5000.00,
             'data_admissao': date.today(),
@@ -116,9 +96,19 @@ def create_admin_user(funcionarios_group):
     )
     
     if created:
-        print("   + Perfil de funcionario criado para admin")
+        funcionario.set_password('admin123')
+        funcionario.save()
+        print("   + Funcionario admin criado (username: admin, password: admin123)")
+    else:
+        # Garantir que a senha esteja correta
+        funcionario.set_password('admin123')
+        funcionario.save()
+        print("   + Funcionario admin ja existe (senha redefinida para admin123)")
     
-    return admin_user
+    # Adicionar ao grupo de funcionários
+    funcionario.groups.add(funcionarios_group)
+    
+    return funcionario
 
 def create_test_data():
     print("INICIANDO CONFIGURACAO DO SISTEMA DE BIBLIOTECA COMUNITARIA")
@@ -181,82 +171,71 @@ def create_test_data():
     
     # 5. Criar funcionário adicional
     print("* Criando funcionario de exemplo...")
-    funcionario_user, created = User.objects.get_or_create(
+    funcionario, created = Funcionario.objects.get_or_create(
         username='funcionario1',
         defaults={
             'email': 'funcionario@biblioteca.com',
             'first_name': 'Ana',
             'last_name': 'Santos',
             'is_active': True,
+            'cargo': 'Bibliotecário Assistente',
+            'salario': 3000.00,
+            'data_admissao': date.today(),
+            'ativo': True
         }
     )
     
     if created:
-        funcionario_user.set_password('func123')
-        funcionario_user.save()
-        funcionario_user.groups.add(funcionarios_group)
-        
-        funcionario, created2 = Funcionario.objects.get_or_create(
-            usuario=funcionario_user,
-            defaults={
-                'cargo': 'Bibliotecário Assistente',
-                'salario': 3000.00,
-                'data_admissao': date.today(),
-                'ativo': True
-            }
-        )
-        if created2:
-            print("   + Funcionário Ana Santos criado")
+        funcionario.set_password('func123')
+        funcionario.save()
+        funcionario.groups.add(funcionarios_group)
+        print("   + Funcionário Ana Santos criado")
     
     # 6. Criar usuários leitores
     print("* Criando leitores de exemplo...")
     leitores_data = [
         {
             "username": "joao.silva", "email": "joao@email.com", "first_name": "João", "last_name": "Silva",
-            "cpf": "12345678901", "telefone": "(11) 99999-9999", "endereco": "Rua A, 123", "data_nascimento": date(1990, 1, 15)
+            "cpf": "12345678909", "telefone": "(11) 99999-9999", "endereco": "Rua A, 123", "data_nascimento": date(1990, 1, 15)
         },
         {
             "username": "maria.prado", "email": "maria@email.com", "first_name": "Maria", "last_name": "Prado",
-            "cpf": "98765432109", "telefone": "(11) 88888-8888", "endereco": "Rua B, 456", "data_nascimento": date(1985, 5, 20)
+            "cpf": "98765432100", "telefone": "(11) 88888-8888", "endereco": "Rua B, 456", "data_nascimento": date(1985, 5, 20)
         },
         {
             "username": "pedro.oliveira", "email": "pedro@email.com", "first_name": "Pedro", "last_name": "Oliveira", 
-            "cpf": "11223344556", "telefone": "(11) 77777-7777", "endereco": "Rua C, 789", "data_nascimento": date(1992, 10, 30)
+            "cpf": "11223344517", "telefone": "(11) 77777-7777", "endereco": "Rua C, 789", "data_nascimento": date(1992, 10, 30)
         },
         {
             "username": "ana.costa", "email": "ana@email.com", "first_name": "Ana", "last_name": "Costa",
-            "cpf": "55566677788", "telefone": "(11) 66666-6666", "endereco": "Rua D, 321", "data_nascimento": date(1988, 8, 12)
+            "cpf": "55566677720", "telefone": "(11) 66666-6666", "endereco": "Rua D, 321", "data_nascimento": date(1988, 8, 12)
         }
     ]
     
     for leitor_data in leitores_data:
-        user, created = User.objects.get_or_create(
-            username=leitor_data["username"],
-            defaults={
-                "email": leitor_data["email"],
-                "first_name": leitor_data["first_name"],
-                "last_name": leitor_data["last_name"],
-                "is_active": True,
-            }
-        )
-        user.set_password('123456')  # Senha simples para teste
-        user.save()
-        user.groups.add(leitores_group)
-        
         # Tentar criar o leitor, mas verificar CPF único
         try:
-            leitor, created2 = Leitor.objects.get_or_create(
-                cpf=leitor_data["cpf"],
+            leitor, created = Leitor.objects.get_or_create(
+                username=leitor_data["username"],
                 defaults={
-                    "usuario": user,
+                    "email": leitor_data["email"],
+                    "first_name": leitor_data["first_name"],
+                    "last_name": leitor_data["last_name"],
+                    "is_active": True,
+                    "cpf": leitor_data["cpf"],
                     "telefone": leitor_data["telefone"],
                     "endereco": leitor_data["endereco"],
                     "data_nascimento": leitor_data["data_nascimento"],
                     "ativo": True
                 }
             )
-            if created2:
-                print(f"   + Leitor criado: {leitor.usuario.first_name} {leitor.usuario.last_name}")
+            
+            if created:
+                leitor.set_password('123456')  # Senha simples para teste
+                leitor.save()
+                leitor.groups.add(leitores_group)
+                print(f"   + Leitor criado: {leitor.first_name} {leitor.last_name}")
+                
         except Exception as e:
             print(f"   ! Leitor {leitor_data['first_name']} ja existe ou erro: {e}")
     
@@ -266,8 +245,8 @@ def create_test_data():
         # Pegar alguns livros e leitores para criar empréstimos
         livro1 = Livro.objects.get(titulo="1984")
         livro2 = Livro.objects.get(titulo="Python Fluente")
-        leitor1 = Leitor.objects.get(cpf="12345678901")  # João Silva
-        funcionario_admin = Funcionario.objects.get(usuario=admin_user)
+        leitor1 = Leitor.objects.get(username="joao.silva")  # João Silva
+        funcionario_admin = Funcionario.objects.get(username='admin')
         
         # Empréstimo ativo
         emprestimo1, created = Emprestimo.objects.get_or_create(
@@ -282,7 +261,7 @@ def create_test_data():
         if created:
             livro1.disponivel = False
             livro1.save()
-            print(f"   + Empréstimo criado: {livro1.titulo} para {leitor1.usuario.first_name}")
+            print(f"   + Empréstimo criado: {livro1.titulo} para {leitor1.first_name}")
         
     except Exception as e:
         print(f"   !  Erro ao criar empréstimos: {e}")

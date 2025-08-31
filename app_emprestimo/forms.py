@@ -43,7 +43,7 @@ class EmprestimoForm(forms.ModelForm):
         self.fields['livro'].empty_label = "Selecione um livro"
         
         # Filtrar apenas leitores ativos
-        self.fields['leitor'].queryset = Leitor.objects.filter(ativo=True).order_by('usuario__first_name')
+        self.fields['leitor'].queryset = Leitor.objects.filter(ativo=True).order_by('first_name')
         self.fields['leitor'].empty_label = "Selecione um leitor"
 
     def clean_livro(self):
