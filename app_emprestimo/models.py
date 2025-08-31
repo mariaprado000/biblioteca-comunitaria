@@ -13,7 +13,7 @@ class Emprestimo(models.Model):
     data_devolucao_prevista = models.DateField()
     data_devolucao = models.DateField(null=True, blank=True)
     multa = models.DecimalField(max_digits=6, decimal_places=2, default=0)
-    renovacao = models.IntegerField(default=0)
+    renovacao = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='renovacoes')
     
     def calcular_multa(self):
         """Calcula a multa baseada nos dias de atraso"""
@@ -29,10 +29,26 @@ class Emprestimo(models.Model):
         """Verifica se o empréstimo está atrasado"""
         return not self.data_devolucao and self.data_devolucao_prevista < timezone.now().date()
     
+    def contar_renovacoes(self):
+        """Conta quantas renovações foram feitas recursivamente"""
+        count = 0
+        emprestimo_atual = self
+        while emprestimo_atual.renovacao:
+            count += 1
+            emprestimo_atual = emprestimo_atual.renovacao
+        return count
+    
+    def get_emprestimo_original(self):
+        """Retorna o empréstimo original (raiz da cadeia de renovações)"""
+        emprestimo_atual = self
+        while emprestimo_atual.renovacao:
+            emprestimo_atual = emprestimo_atual.renovacao
+        return emprestimo_atual
+    
     def pode_renovar(self):
         """Verifica se o empréstimo pode ser renovado"""
         # Não pode renovar se está atrasado ou já foi renovado 2 vezes
-        return not self.esta_atrasado() and self.renovacao < 2
+        return not self.esta_atrasado() and self.contar_renovacoes() < 2
     
     def __str__(self):
         return f"{self.livro.titulo} - {self.leitor}"

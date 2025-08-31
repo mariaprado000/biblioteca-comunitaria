@@ -30,7 +30,7 @@
                     <div class="col-md-6">
                         <strong>Data do Empréstimo:</strong> {{ object.data_emprestimo|date:"d/m/Y" }}<br>
                         <strong>Data Prevista Atual:</strong> {{ object.data_devolucao_prevista|date:"d/m/Y" }}<br>
-                        <strong>Renovações:</strong> {{ object.renovacao }}/2
+                        <strong>Renovações:</strong> {{ object.contar_renovacoes }}/2
                     </div>
                 </div>
                 
@@ -74,8 +74,16 @@
                         <i class="fas fa-exclamation-triangle"></i>
                         <strong>Atenção:</strong>
                         <ul class="mb-0 mt-2">
-                            <li>Esta será a renovação número {{ object.renovacao|add:1 }} de 2</li>
-                            <li>Após {{ 2|sub:object.renovacao }} renovação(ões), o livro deverá ser devolvido</li>
+                            <li>Esta será a renovação número {{ object.contar_renovacoes|add:1 }} de 2</li>
+                            {% with renovacoes_restantes=object.contar_renovacoes %}
+                                {% if renovacoes_restantes == 0 %}
+                                    <li>Após 2 renovação(ões), o livro deverá ser devolvido</li>
+                                {% elif renovacoes_restantes == 1 %}
+                                    <li>Após 1 renovação(ões), o livro deverá ser devolvido</li>
+                                {% else %}
+                                    <li>Este é o limite de renovações</li>
+                                {% endif %}
+                            {% endwith %}
                             <li>Renovações não são permitidas para empréstimos em atraso</li>
                         </ul>
                     </div>

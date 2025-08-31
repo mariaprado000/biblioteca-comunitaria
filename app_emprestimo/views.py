@@ -147,10 +147,20 @@ def emprestimo_renovar(request, pk):
         if form.is_valid():
             try:
                 dias_renovacao = form.cleaned_data['dias_renovacao']
+                funcionario = get_object_or_404(Funcionario, usuario=request.user)
                 
-                # Renovar empréstimo
-                emprestimo.data_devolucao_prevista += timedelta(days=dias_renovacao)
-                emprestimo.renovacao += 1
+                # Criar novo empréstimo (renovação) vinculado ao atual
+                novo_emprestimo = Emprestimo(
+                    livro=emprestimo.livro,
+                    leitor=emprestimo.leitor,
+                    emprestado_por=funcionario,
+                    data_devolucao_prevista=emprestimo.data_devolucao_prevista + timedelta(days=dias_renovacao),
+                    renovacao=emprestimo
+                )
+                novo_emprestimo.save()
+                
+                # Marcar empréstimo atual como devolvido
+                emprestimo.data_devolucao = timezone.now().date()
                 emprestimo.save()
                 
                 messages.success(request, f'Empréstimo renovado por {dias_renovacao} dias!')

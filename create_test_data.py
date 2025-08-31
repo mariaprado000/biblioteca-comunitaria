@@ -275,7 +275,8 @@ def create_test_data():
             leitor=leitor1,
             defaults={
                 'emprestado_por': funcionario_admin,
-                'data_devolucao_prevista': date.today() + timedelta(days=14)
+                'data_devolucao_prevista': date.today() + timedelta(days=14),
+                'renovacao': None  # Empréstimo original (não é renovação)
             }
         )
         if created:
