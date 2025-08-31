@@ -112,6 +112,10 @@ class RenovacaoForm(forms.Form):
         help_text='Número de dias para renovar o empréstimo (máximo 30 dias)'
     )
 
+    def __init__(self, emprestimo=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.emprestimo = emprestimo
+
     def clean_dias_renovacao(self):
         dias = self.cleaned_data.get('dias_renovacao')
         if not dias:
@@ -125,6 +129,20 @@ class RenovacaoForm(forms.Form):
         
         return dias
 
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        if self.emprestimo:
+            # Validar se empréstimo já foi devolvido
+            if self.emprestimo.data_devolucao:
+                raise forms.ValidationError('Este empréstimo já foi devolvido.')
+            
+            # Validar se pode ser renovado (não está atrasado e não excedeu limite)
+            if not self.emprestimo.pode_renovar():
+                raise forms.ValidationError('Este empréstimo não pode ser renovado (atrasado ou limite de renovações atingido).')
+        
+        return cleaned_data
+
 
 class DevolucaoForm(forms.Form):
     """Form para confirmação de devolução - apenas para validação"""
@@ -136,8 +154,22 @@ class DevolucaoForm(forms.Form):
         })
     )
 
+    def __init__(self, emprestimo=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.emprestimo = emprestimo
+
     def clean_confirmar_devolucao(self):
         confirmado = self.cleaned_data.get('confirmar_devolucao')
         if not confirmado:
             raise forms.ValidationError('É necessário confirmar a devolução')
         return confirmado
+
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        if self.emprestimo:
+            # Validar se empréstimo já foi devolvido
+            if self.emprestimo.data_devolucao:
+                raise forms.ValidationError('Este empréstimo já foi devolvido.')
+        
+        return cleaned_data

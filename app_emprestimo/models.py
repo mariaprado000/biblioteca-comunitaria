@@ -15,16 +15,6 @@ class Emprestimo(models.Model):
     multa = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     renovacao = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='renovacoes')
     
-    def calcular_multa(self):
-        """Calcula a multa baseada nos dias de atraso"""
-        if not self.data_devolucao and self.data_devolucao_prevista < timezone.now().date():
-            dias_atraso = (timezone.now().date() - self.data_devolucao_prevista).days
-            return Decimal(str(dias_atraso * 2.00))
-        elif self.data_devolucao and self.data_devolucao > self.data_devolucao_prevista:
-            dias_atraso = (self.data_devolucao - self.data_devolucao_prevista).days
-            return Decimal(str(dias_atraso * 2.00))
-        return Decimal('0.00')
-    
     def esta_atrasado(self):
         """Verifica se o empréstimo está atrasado"""
         return not self.data_devolucao and self.data_devolucao_prevista < timezone.now().date()

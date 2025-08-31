@@ -4,12 +4,23 @@ from django.contrib import messages
 from django.utils import timezone
 from datetime import datetime, timedelta
 from django.core.exceptions import ValidationError
+from decimal import Decimal
 from .models import Emprestimo
 from .forms import EmprestimoForm, RenovacaoForm, DevolucaoForm
 from app_livro.models import Livro
 from app_leitor.models import Leitor
 from app_funcionario.models import Funcionario
 from biblioteca.decorators import funcionario_or_leitor_required, funcionario_required
+
+def calcular_multa(emprestimo):
+    """Calcula a multa baseada nos dias de atraso"""
+    if not emprestimo.data_devolucao and emprestimo.data_devolucao_prevista < timezone.now().date():
+        dias_atraso = (timezone.now().date() - emprestimo.data_devolucao_prevista).days
+        return Decimal(str(dias_atraso * 2.00))
+    elif emprestimo.data_devolucao and emprestimo.data_devolucao > emprestimo.data_devolucao_prevista:
+        dias_atraso = (emprestimo.data_devolucao - emprestimo.data_devolucao_prevista).days
+        return Decimal(str(dias_atraso * 2.00))
+    return Decimal('0.00')
 
 @login_required
 @funcionario_or_leitor_required
@@ -88,19 +99,15 @@ def emprestimo_create(request):
 def emprestimo_devolver(request, pk):
     emprestimo = get_object_or_404(Emprestimo, pk=pk)
     
-    if emprestimo.data_devolucao:
-        messages.warning(request, 'Este empréstimo já foi devolvido.')
-        return redirect('app_emprestimo:listar')
-    
     if request.method == 'POST':
-        form = DevolucaoForm(request.POST)
+        form = DevolucaoForm(emprestimo=emprestimo, data=request.POST)
         if form.is_valid():
             try:
                 # Marcar data de devolução
                 emprestimo.data_devolucao = timezone.now().date()
                 
                 # Calcular multa se houver atraso
-                emprestimo.multa = emprestimo.calcular_multa()
+                emprestimo.multa = calcular_multa(emprestimo)
                 emprestimo.save()
                 
                 # Marcar livro como disponível
@@ -117,10 +124,10 @@ def emprestimo_devolver(request, pk):
             except Exception as e:
                 messages.error(request, f'Erro ao devolver livro: {e}')
     else:
-        form = DevolucaoForm()
+        form = DevolucaoForm(emprestimo=emprestimo)
     
     # Calcular multa atual (se houver)
-    multa_atual = emprestimo.calcular_multa()
+    multa_atual = calcular_multa(emprestimo)
     
     context = {
         'form': form,
@@ -134,16 +141,8 @@ def emprestimo_devolver(request, pk):
 def emprestimo_renovar(request, pk):
     emprestimo = get_object_or_404(Emprestimo, pk=pk)
     
-    if emprestimo.data_devolucao:
-        messages.warning(request, 'Este empréstimo já foi devolvido.')
-        return redirect('app_emprestimo:listar')
-    
-    if not emprestimo.pode_renovar():
-        messages.error(request, 'Este empréstimo não pode ser renovado (atrasado ou limite de renovações atingido).')
-        return redirect('app_emprestimo:listar')
-    
     if request.method == 'POST':
-        form = RenovacaoForm(request.POST)
+        form = RenovacaoForm(emprestimo=emprestimo, data=request.POST)
         if form.is_valid():
             try:
                 dias_renovacao = form.cleaned_data['dias_renovacao']
@@ -169,7 +168,7 @@ def emprestimo_renovar(request, pk):
             except Exception as e:
                 messages.error(request, f'Erro ao renovar empréstimo: {e}')
     else:
-        form = RenovacaoForm()
+        form = RenovacaoForm(emprestimo=emprestimo)
     
     context = {
         'form': form,
