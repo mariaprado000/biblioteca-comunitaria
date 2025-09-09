@@ -118,7 +118,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const diasSelect = document.getElementById('dias_emprestimo');
+    const diasSelect = document.getElementById('{{ form.dias_emprestimo.id_for_label }}');
     const dataDisplay = document.getElementById('data_devolucao_display');
     
     function calcularDataDevolucao() {

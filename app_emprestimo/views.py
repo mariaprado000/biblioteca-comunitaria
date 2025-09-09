@@ -66,7 +66,7 @@ def emprestimo_create(request):
         if form.is_valid():
             try:
                 # Obter funcionário atual
-                funcionario = request.user  # request.user já é um Funcionario
+                funcionario = Funcionario.objects.get(pk=request.user.pk)
                 
                 # Criar empréstimo
                 dias_emprestimo = form.cleaned_data['dias_emprestimo']
@@ -146,7 +146,7 @@ def emprestimo_renovar(request, pk):
         if form.is_valid():
             try:
                 dias_renovacao = form.cleaned_data['dias_renovacao']
-                funcionario = request.user  # request.user já é um Funcionario
+                funcionario = Funcionario.objects.get(pk=request.user.pk)
                 
                 # Criar novo empréstimo (renovação) vinculado ao atual
                 novo_emprestimo = Emprestimo(
