@@ -2,6 +2,10 @@
 
 Sistema web completo para gerenciamento de biblioteca comunitária desenvolvido com **Django 4.2** e **Bootstrap 5** (Sneat Admin Template).
 
+## Link do vídeo da apresentação👇
+[Vídeo no youtube]
+(https://youtu.be/u38GoTJIRhI?si=GSyE3G_x2HuQfz2_)
+
 ## 🎯 Objetivo do Projeto
 
 Sistema profissional de gerenciamento de biblioteca com funcionalidades completas:
