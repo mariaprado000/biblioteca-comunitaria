@@ -4,7 +4,7 @@ Sistema web completo para gerenciamento de biblioteca comunitária desenvolvido 
 
 ## Link do vídeo da apresentação👇
 [Vídeo no youtube]
-https://youtu.be/u38GoTJIRhI?si=GSyE3G_x2HuQfz2_
+(https://youtu.be/u38GoTJIRhI?si=GSyE3G_x2HuQfz2_)
 
 ## 🎯 Objetivo do Projeto
 
